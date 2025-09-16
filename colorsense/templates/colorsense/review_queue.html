@@ -1,0 +1,51 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Review Queue – PaintSense</title>
+  <link rel="stylesheet" href="{% static 'colorsense/styles.css' %}">
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #ddd; text-align: left; }
+    th { background: #f8f8f8; }
+    .nowrap { white-space: nowrap; }
+    .muted { color: #666; }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Review Queue</h1>
+    <p class="subtitle">Pending AI suggestions awaiting human approval</p>
+    <p><a href="{% url 'colorsense_index' %}">← Back to Chat</a></p>
+  </header>
+
+  <main class="container">
+    {% if pending %}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Created</th>
+            <th>Prompt</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in pending %}
+          <tr>
+            <td class="nowrap">#{{ s.id }}</td>
+            <td class="nowrap">{{ s.created_at|date:'Y-m-d H:i' }}</td>
+            <td>{{ s.user_text|truncatechars:120 }}</td>
+            <td><a href="{% url 'review_detail' s.id %}">Review</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No pending suggestions.</p>
+    {% endif %}
+  </main>
+</body>
+</html>

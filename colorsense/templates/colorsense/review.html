@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Your Suggestion - PaintSense</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .suggestion-box {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .swatches {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        .swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .approve {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .reject {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Review Your Suggestion</h1>
+    
+    <div class="suggestion-box">
+        <h2>Your Request</h2>
+        <p>{{ suggestion.user_text }}</p>
+        
+        <h2>Our Suggestion</h2>
+        <p>{{ suggestion.reply|linebreaksbr }}</p>
+        
+        {% if suggestion.swatches %}
+        <h3>Color Swatches</h3>
+        <div class="swatches">
+            {% for color in suggestion.swatches %}
+            <div class="swatch" style="background-color: {{ color }};" title="{{ color }}"></div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="actions">
+            <button class="approve" onclick="submitReview('approve')">Approve</button>
+            <button class="reject" onclick="submitReview('reject')">Reject</button>
+        </div>
+    </div>
+    
+    <script>
+    async function submitReview(action) {
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: `action=${action}`
+        });
+        
+        const result = await response.json();
+        if (result.status === 'accepted') {
+            alert('Thank you for your approval!');
+        } else if (result.status === 'rejected') {
+            alert('Your suggestion has been rejected.');
+        }
+        
+        // Close the window or redirect
+        window.close();
+    }
+    </script>
+</body>
+</html>

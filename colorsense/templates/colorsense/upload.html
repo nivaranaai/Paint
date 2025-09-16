@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Images</title>
+</head>
+<body>
+  <h2>Upload Images for 3D Reconstruction</h2>
+  <form method="post" enctype="multipart/form-data" action="{% url 'upload_images' %}">
+    {% csrf_token %}
+    <input type="file" name="images" multiple required>
+    <button type="submit">Upload</button>
+  </form>
+</body>
+</html>

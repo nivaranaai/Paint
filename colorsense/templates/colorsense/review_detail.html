@@ -1,0 +1,82 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Review Suggestion #{{ s.id }} – PaintSense</title>
+  <link rel="stylesheet" href="{% static 'colorsense/styles.css' %}">
+  <style>
+    .meta { color: #555; font-size: 0.9em; }
+    .row { margin-bottom: 16px; }
+    textarea { width: 100%; box-sizing: border-box; }
+    input[type=text] { width: 100%; box-sizing: border-box; }
+    .actions { display: flex; gap: 12px; }
+    .actions button { padding: 8px 14px; }
+    .card { border: 1px solid #e3e3e3; border-radius: 8px; padding: 12px; background: #fff; }
+    .muted { color: #777; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 900px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>Review Suggestion #{{ s.id }}</h1>
+    <p class="subtitle">Created {{ s.created_at|date:'Y-m-d H:i' }} • Status: {{ s.status|title }}</p>
+    <p><a href="{% url 'review_queue' %}">← Back to queue</a></p>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h2>Prompt & Context</h2>
+      <div class="row">
+        <div class="meta">User Prompt</div>
+        <div>{{ s.user_text|linebreaksbr }}</div>
+      </div>
+      <div class="row">
+        <div class="meta">Docs</div>
+        {% if s.docs_text %}
+          <pre style="white-space: pre-wrap;">{{ s.docs_text }}</pre>
+        {% else %}
+          <div class="muted">No additional docs.</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>AI Output</h2>
+      <form action="{% url 'review_approve' s.id %}" method="post" class="row">
+        {% csrf_token %}
+        <div class="row">
+          <label for="reply">Assistant Reply</label>
+          <textarea id="reply" name="reply" rows="10">{{ s.reply }}</textarea>
+        </div>
+        <div class="row">
+          <label for="swatches_text">Swatches (comma or newline separated hex)</label>
+          <input id="swatches_text" name="swatches_text" type="text" value="{% for h in s.swatches %}{{ h }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+        </div>
+        <div class="row">
+          <label for="review_notes">Notes (optional)</label>
+          <textarea id="review_notes" name="review_notes" rows="3">{{ s.review_notes }}</textarea>
+        </div>
+        <div class="actions">
+          <button type="submit">Approve</button>
+        </div>
+      </form>
+
+      <form action="{% url 'review_reject' s.id %}" method="post" class="row">
+        {% csrf_token %}
+        <div class="row">
+          <label for="reject_notes">Rejection Notes (optional)</label>
+          <textarea id="reject_notes" name="review_notes" rows="3">{{ s.review_notes }}</textarea>
+        </div>
+        <div class="actions">
+          <button type="submit">Reject</button>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PaintSense – AI Paint Consultant</title>
+  <link rel="stylesheet" href="{% static 'colorsense/styles.css' %}">
+</head>
+<body>
+  <header class="header">
+    <h1>PaintSense</h1>
+    <p class="subtitle">Describe your space, upload photos or notes, and get tailored paint suggestions.</p>
+    {% if request.user.is_staff %}
+    <p><a href="{% url 'review_queue' %}">Review queue</a></p>
+    {% endif %}
+  </header>
+
+  <main class="container">
+    <section id="chat" class="chat"></section>
+
+    <section class="composer">
+      <div class="row">
+        <textarea id="message" placeholder="Describe your room, lighting, style..." rows="3"></textarea>
+      </div>
+      <div class="row attachments">
+        <div class="file">
+          <label for="images">Images</label>
+          <input id="images" type="file" accept="image/*" multiple>
+        </div>
+        <div class="file">
+          <label for="docs">Notes (.txt/.md)</label>
+          <input id="docs" type="file" accept=".txt,.md" multiple>
+        </div>
+        <div class="toggles">
+          <label class="toggle"><input id="voice-reply" type="checkbox" checked> Voice reply</label>
+          <label class="toggle"><input id="hitl-toggle" type="checkbox"> Require human review</label>
+        </div>
+      </div>
+      <div class="row actions">
+        <button id="mic" title="Voice input">🎤</button>
+        <button id="send">Send</button>
+      </div>
+    </section>
+    
+    <section id="swatches" class="swatches" aria-label="Color swatches"></section>
+    <section id="upload_images" class="upload_images" > <a href={% url 'upload' %}>upload images</a> </section>
+  </main>
+
+  <footer class="footer">
+    <small>Tip: For best results, include lighting and furniture colors. Voice features may vary by browser.</small>
+  </footer>
+
+  <script src="{% static 'colorsense/app.js' %}"></script>
+</body>
+</html>
