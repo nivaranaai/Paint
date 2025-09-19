@@ -77,13 +77,20 @@ def file_to_data_url(upload) -> str:
 
 
 def build_messages(user_text: str, image_data_urls: List[str], doc_texts: List[str]) -> List[Dict[str, Any]]:
-    system_prompt = (
+    
+    system_prompt1 = (
         "You are PaintSense, a smart paint consultant.\n"
         "Given a user's room description, style preferences, and optional images of the space,\n"
         "recommend 3-5 paint color options (with HEX), finishes (eggshell/matte/semi-gloss), and brief rationales.\n"
         "If images are provided, infer lighting, existing furniture colors, and undertones.\n"
         "Be concise and practical. Close with preparation tips.\n"
-        "Return approachable text; include HEX codes when naming colors."
+        "Return approachable text; include HEX codes when naming colors." )
+
+    system_prompt = (
+        "Elaborate the text provided \n"
+        "If images are provided, infer lighting, existing furniture colors, and undertones. also walls ceiling windows etc\n"
+        "Be concise and practical. Close with preparation tips.\n"
+        "Return approachable text."
     )
 
     content_parts: List[Dict[str, Any]] = []
@@ -96,12 +103,10 @@ def build_messages(user_text: str, image_data_urls: List[str], doc_texts: List[s
         joined = "\n\n".join(doc_texts)[:6000]  # keep prompt size reasonable
         content_parts.append({"type": "text", "text": f"Additional notes from documents:\n{joined}"})
 
-    # Add images
-    for url in image_data_urls[:4]:  # limit to 4 images
-        content_parts.append({
-            "type": "image_url",
-            "image_url": {"url": url}
-        })
+    # Add images as descriptions instead of URLs
+    if image_data_urls:
+        image_descriptions = "\n".join([f"Image {i+1}: [image description]" for i, _ in enumerate(image_data_urls)])
+        content_parts.append({"type": "text", "text": f"Images provided:\n{image_descriptions}"})
 
     return [
         {"role": "system", "content": system_prompt},
@@ -122,11 +127,12 @@ class AgentState(TypedDict):  # type: ignore
 
 def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
     """
-    Minimal orchestration: prepare inputs, call OpenAI Vision, and post-process.
+    Orchestrate the process: summarize inputs, confirm summary, and generate paint suggestions.
     Returns dict with 'reply' and 'swatches' (list of hex codes).
     """
     client = OpenAIClient()
 
+    # Convert images to data URLs
     image_data_urls: List[str] = []
     for img in image_uploads:
         try:
@@ -135,6 +141,7 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
         finally:
             img.seek(0)
 
+    # Read document texts
     doc_texts: List[str] = []
     for doc in doc_uploads:
         try:
@@ -148,19 +155,40 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
         finally:
             doc.seek(0)
 
-    messages = build_messages(user_text=user_text, image_data_urls=image_data_urls, doc_texts=doc_texts)
+    # Summarize inputs using LLM
+    summary_messages = build_messages(user_text=user_text, image_data_urls=image_data_urls, doc_texts=doc_texts)
+    summary_model = os.environ.get("SUMMARY_MODEL", "gpt-3.5-turbo")
+    summary = client.chat(model=summary_model, messages=summary_messages)
 
-    model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o-mini")
-    reply = client.chat(model=model, messages=messages)
-    print(reply)
-    swatches = extract_hex_codes(reply)
+    # Send summary to frontend for confirmation
+    confirmation_response = {"reply": summary, "swatches": []}
 
-    return {
-        "reply": reply,
-        "swatches": swatches,
-    }
+    # Simulate confirmation response for testing
+    # In a real scenario, this would be replaced by actual frontend response
+    confirmation_response["confirm"] = True  # Simulate approval
+
+    if confirmation_response.get("confirm", False):
+        # Generate paint suggestions
+        suggestion_messages = build_messages(user_text=summary, image_data_urls=image_data_urls, doc_texts=doc_texts)
+        suggestion_model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o-mini")
+        suggestion_reply = client.chat(model=suggestion_model, messages=suggestion_messages)
+        swatches = extract_hex_codes(suggestion_reply)
+
+        return {
+            "reply": suggestion_reply,
+            "swatches": swatches,
+        }
+    else:
+        return {"reply": "Summary rejected. Please revise the input.", "swatches": []}
 
 
+def _review_node(state: AgentState) -> AgentState:
+    """Human-in-the-loop review node for confirming the summary via frontend."""
+    # This node should be handled by the frontend confirmation process
+    # The state will be updated based on the frontend response
+    # For now, simulate approval for testing purposes
+    state["reply"] = "Summary approved. Proceeding with paint suggestions."
+    return state
 
 # Optional: LangGraph wrapper (single node) - not strictly necessary but available
 if StateGraph is not None:
@@ -175,10 +203,10 @@ if StateGraph is not None:
 
     graph = StateGraph(AgentState)  # type: ignore
     graph.add_node("call_openai", _call_node)  # type: ignore
-   
+    graph.add_node("review", _review_node)
     graph.add_edge(START, "call_openai")  # type: ignore
-
-    graph.add_edge("call_openai", END)  # type: ignore
+    graph.add_edge("call_openai", "review")  # type: ignore
+    graph.add_edge("review", END)  # type: ignore
     PAINT_GRAPH = graph.compile()  # type: ignore
 else:
     PAINT_GRAPH = None

@@ -25,7 +25,8 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
-
+    #confirm = request.POST.get("confirm", "false").strip()
+    #print(confirm)
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
@@ -36,13 +37,14 @@ def agent_api(request):
             "ok": True,
             "reply": result.get("reply", ""),
             "swatches": result.get("swatches", []),
-        })
-        
+        })    
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
 
-
+def review_suggestion(request):
+    """Show a suggestion for user review"""
+    return JsonResponse({"ok": True})
 
 
 
@@ -149,3 +151,12 @@ def get_suggestion_status(request, suggestion_id):
         "reply": suggestion.reply,
         "swatches": suggestion.swatches
     })
+
+@require_POST
+def confirm_suggestion(request):
+    """Handle user confirmation of the suggestion."""
+    confirm = request.POST.get("confirm", "false").strip().lower()
+    if confirm == "true":
+        return JsonResponse({"ok": True, "message": "Suggestion confirmed."})
+    else:
+        return JsonResponse({"ok": False, "message": "Suggestion rejected."})

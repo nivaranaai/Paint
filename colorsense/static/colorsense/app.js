@@ -60,14 +60,14 @@
     window.speechSynthesis.speak(utter);
   }
 
-  function openReviewWindow(suggestionId) {
+  function openReviewWindow(review) {
     const width = 800;
     const height = 800;
     const left = (window.screen.width - width) / 2;
     const top = (window.screen.height - height) / 2;
     
     const reviewWindow = window.open(
-      `/review/${suggestionId}/`,
+      `/api/agent/`,
       'paintsense-review',
       `width=${width},height=${height},top=${top},left=${left}`
     );
@@ -75,7 +75,59 @@
     // Check if window was blocked by popup blocker
     if (!reviewWindow || reviewWindow.closed || typeof reviewWindow.closed === 'undefined') {
       // Fallback to in-page review
-      window.location.href = `/review/${suggestionId}/`;
+      window.location.href = `/api/agent/`;
+    }
+  }
+
+  function confirmSuggetion(description) {
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmText = document.getElementById('confirmText');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+
+    confirmText.textContent = description.reply;
+    confirmModal.style.display = 'flex'; // use flex for centering
+
+    // Cleanup previous listeners by cloning the buttons
+    const newYesBtn = yesBtn.cloneNode(true);
+    const newNoBtn = noBtn.cloneNode(true);
+    yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
+    noBtn.parentNode.replaceChild(newNoBtn, noBtn);
+
+    // Add fresh listeners
+    newYesBtn.addEventListener('click', async () => {
+        confirmModal.style.display = 'none';
+        // Send confirmation to the server
+        await sendConfirmation(true);
+    });
+
+    newNoBtn.addEventListener('click', async () => {
+        confirmModal.style.display = 'none';
+        // Send rejection to the server
+        await sendConfirmation(false);
+    });
+  }
+
+  async function sendConfirmation(confirmed) {
+    const form = new FormData();
+    form.append('confirm', confirmed);
+    const csrftoken = getCookie('csrftoken');
+
+    try {
+        const resp = await fetch('/api/agent/confirm/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: form,
+        });
+
+        const data = await resp.json();
+        if (data.ok) {
+            alert('Confirmation sent successfully.');
+        } else {
+            alert(`Error: ${data.error}`);
+        }
+    } catch (err) {
+        alert(`Network error: ${err}`);
     }
   }
 
@@ -88,7 +140,8 @@
       messageEl.focus();
       return;
     }
-
+    //console.log(msg, images, docs);
+    //alert("Hello");
     // Add user message to chat
     appendBubble('user', msg || '(no text)');
     messageEl.value = '';
@@ -97,7 +150,7 @@
     form.append('message', msg);
     for (const f of images) form.append('images', f);
     for (const f of docs) form.append('docs', f);
-
+    //form.append('confirm', false);
     const csrftoken = getCookie('csrftoken');
     const bubble = appendBubble('assistant', 'Thinking…');
 
@@ -109,16 +162,18 @@
       });
 
       const data = await resp.json();
-      
+      console.log(data);
       if (!data.ok) {
         bubble.textContent = `Error: ${data.error || resp.statusText}`;
         return;
       }
 
       // If we have a suggestion ID, open the review window
-      if (data.suggestion_id) {
+      if (data.ok) {
         bubble.textContent = 'I have a suggestion for you. Please review it below.';
-        openReviewWindow(data.suggestion_id);
+        //const suggestion = appendBubble('suggestion', data.reply);
+        bubble.textContent = data.reply;
+        confirmSuggetion(data);
       } else {
         // Direct response (no review needed)
         bubble.textContent = data.reply || 'No response';

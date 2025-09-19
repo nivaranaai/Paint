@@ -54,3 +54,17 @@
   <script src="{% static 'colorsense/app.js' %}"></script>
 </body>
 </html>
+
+
+
+<div id="confirmModal" style="display:none; z-index:1000;  
+  position:absolut; top:0; left:0; width:100%; height:100%;
+  background:rgba(0,0,0,0.6);">
+  <div style="background:rgba(255, 255, 255, 0.068); padding:20px; width:300px; 
+    margin:15% auto; border-radius:10px; text-align:center;">
+    <p>Please Confirm the details !!! </p>
+    <p id="confirmText" style="flex:1; overflow:auto; margin-bottom:15px;"></p>
+    <button id="yesBtn">Yes</button>
+    <button id="noBtn">No</button>
+  </div>
+</div>

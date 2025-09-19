@@ -6,8 +6,7 @@ urlpatterns = [
     path('upload/', views.upload, name='upload'),
     path('api/agent/', views.agent_api, name='colorsense_agent_api'),
     path('upload_images/', views.upload_images, name='upload_images'),
-    
+    path('api/agent/confirm/', views.confirm_suggestion, name='confirm_suggestion'),
+    #path('review/', views.review_suggestion, name='review_suggestion'),
     # User review flow
-    path('review/<str:suggestion_id>/', views.review_suggestion, name='review_suggestion'),
-    path('api/suggestions/<str:suggestion_id>/', views.get_suggestion_status, name='suggestion_status'),
 ]
