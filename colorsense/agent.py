@@ -3,14 +3,6 @@ import os
 import re
 from typing import List, Dict, Any
 
-# Optional LangGraph integration (minimal)
-try:
-    from langgraph.graph import StateGraph, START, END  # type: ignore
-    from typing import TypedDict
-except Exception:  # pragma: no cover
-    StateGraph = None  # type: ignore
-    START = END = None  # type: ignore
-    TypedDict = dict  # type: ignore
 
 
 # OpenAI client wrapper (supports new and legacy SDKs)
@@ -39,28 +31,37 @@ class OpenAIClient:
             self._client = openai
             self._mode = "legacy"
 
-    def chat(self, model: str, messages: List[Dict[str, Any]]) -> str:
+    def chat(self, model: str, messages: List[Dict[str, Any]], response_format: Dict[str, Any] = None) -> str:
         if self._mode == "new":
-            resp = self._client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0.6,
-            )
+            kwargs = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.6,
+            }
+            if response_format:
+                kwargs["response_format"] = response_format
+            resp = self._client.chat.completions.create(**kwargs)
         else:
             try:
                 # Legacy SDK (<=0.x)
-                resp = self._client.ChatCompletion.create(
-                    model=model,
-                    messages=messages,
-                    temperature=0.6,
-                )
+                kwargs = {
+                    "model": model,
+                    "messages": messages,
+                    "temperature": 0.6,
+                }
+                if response_format:
+                    kwargs["response_format"] = response_format
+                resp = self._client.ChatCompletion.create(**kwargs)
             except Exception:
                 # Some environments expose the new-style endpoint on the module
-                resp = self._client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    temperature=0.6,
-                )
+                kwargs = {
+                    "model": model,
+                    "messages": messages,
+                    "temperature": 0.6,
+                }
+                if response_format:
+                    kwargs["response_format"] = response_format
+                resp = self._client.chat.completions.create(**kwargs)
         # Normalize return across SDKs
         try:
             return resp.choices[0].message.content or ""
@@ -77,52 +78,57 @@ def file_to_data_url(upload) -> str:
 
 
 def build_messages(user_text: str, image_data_urls: List[str], doc_texts: List[str]) -> List[Dict[str, Any]]:
-    
-    system_prompt1 = (
+    system_prompt = (
         "You are PaintSense, a smart paint consultant.\n"
         "Given a user's room description, style preferences, and optional images of the space,\n"
-        "recommend 3-5 paint color options (with HEX), finishes (eggshell/matte/semi-gloss), and brief rationales.\n"
-        "If images are provided, infer lighting, existing furniture colors, and undertones.\n"
-        "Be concise and practical. Close with preparation tips.\n"
-        "Return approachable text; include HEX codes when naming colors." )
-
-    system_prompt = (
-        "Elaborate the text provided \n"
-        "If images are provided, infer lighting, existing furniture colors, and undertones. also walls ceiling windows etc\n"
-        "Be concise and practical. Close with preparation tips.\n"
-        "Return approachable text."
+        "recommend 3-5 paint color options with HEX codes (format: #RRGGBB), finishes (eggshell/matte/semi-gloss), and brief rationales.\n"
+        "If images are provided, analyze the lighting, existing furniture colors, wall colors, and undertones.\n"
+        "Be concise and practical. Always include HEX codes for each color recommendation.\n"
+        "Close with preparation tips.\n"
+        "Example format: 'Warm White (#F5F5DC) in eggshell finish would complement your space...'\n"
+        "Please provide your response in JSON format with the recommendations."
     )
 
-    content_parts: List[Dict[str, Any]] = []
-    # Add user text
+    # Build user message content
+    content_parts = []
+    
+    # Add text content
+    text_content = []
     if user_text:
-        content_parts.append({"type": "text", "text": user_text})
-
-    # Add doc texts if any
+        text_content.append(user_text)
+    
     if doc_texts:
         joined = "\n\n".join(doc_texts)[:6000]  # keep prompt size reasonable
-        content_parts.append({"type": "text", "text": f"Additional notes from documents:\n{joined}"})
-
-    # Add images as descriptions instead of URLs
+        text_content.append(f"Additional notes from documents:\n{joined}")
+    
+    if not text_content and not image_data_urls:
+        text_content.append("Suggest paint colors for my space.")
+    
+    if text_content:
+        content_parts.append({
+            "type": "text",
+            "text": "\n\n".join(text_content)
+        })
+    
+    # Add images for vision API
     if image_data_urls:
-        image_descriptions = "\n".join([f"Image {i+1}: [image description]" for i, _ in enumerate(image_data_urls)])
-        content_parts.append({"type": "text", "text": f"Images provided:\n{image_descriptions}"})
+        for image_url in image_data_urls:
+            content_parts.append({
+                "type": "image_url",
+                "image_url": {
+                    "url": image_url
+                }
+            })
 
     return [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": content_parts or user_text or "Suggest paint colors."},
+        {"role": "user", "content": content_parts if content_parts else "Suggest paint colors for my space."}
     ]
 
 
 def extract_hex_codes(text: str) -> List[str]:
     return list(dict.fromkeys(re.findall(r"#[0-9a-fA-F]{6}", text)))[:8]
 
-
-class AgentState(TypedDict):  # type: ignore
-    user_text: str
-    image_data_urls: List[str]
-    doc_texts: List[str]
-    reply: str
 
 
 def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
@@ -155,58 +161,33 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
         finally:
             doc.seek(0)
 
-    # Summarize inputs using LLM
-    summary_messages = build_messages(user_text=user_text, image_data_urls=image_data_urls, doc_texts=doc_texts)
-    summary_model = os.environ.get("SUMMARY_MODEL", "gpt-3.5-turbo")
-    summary = client.chat(model=summary_model, messages=summary_messages)
-
-    # Send summary to frontend for confirmation
-    confirmation_response = {"reply": summary, "swatches": []}
-
-    # Simulate confirmation response for testing
-    # In a real scenario, this would be replaced by actual frontend response
-    confirmation_response["confirm"] = True  # Simulate approval
-
-    if confirmation_response.get("confirm", False):
-        # Generate paint suggestions
-        suggestion_messages = build_messages(user_text=summary, image_data_urls=image_data_urls, doc_texts=doc_texts)
-        suggestion_model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o-mini")
-        suggestion_reply = client.chat(model=suggestion_model, messages=suggestion_messages)
-        swatches = extract_hex_codes(suggestion_reply)
-
-        return {
-            "reply": suggestion_reply,
-            "swatches": swatches,
-        }
+    # Use vision model if images are provided, otherwise use regular model
+    if image_data_urls:
+        model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o")  # Vision capable model
     else:
-        return {"reply": "Summary rejected. Please revise the input.", "swatches": []}
+        model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o-mini")
+    
+    # Generate paint suggestions directly
+    response_format = { "type": "json_object" }
+    messages = build_messages(user_text=user_text, image_data_urls=image_data_urls, doc_texts=doc_texts)
+    reply = client.chat(model=model, messages=messages, response_format=response_format)
+    swatches = extract_hex_codes(reply)
+    
+
+    return {
+        "reply": reply,
+        "swatches": swatches,
+    }
+    
+
+def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
+    """Summarize user inputs with focus on room details."""
+    # Modify the user text to request summarization
+    summary_request = f"Please elaborate and summarize the following room description: {user_text}"
+    return run_agent(user_text=summary_request, image_uploads=image_uploads, doc_uploads=doc_uploads)
 
 
-def _review_node(state: AgentState) -> AgentState:
-    """Human-in-the-loop review node for confirming the summary via frontend."""
-    # This node should be handled by the frontend confirmation process
-    # The state will be updated based on the frontend response
-    # For now, simulate approval for testing purposes
-    state["reply"] = "Summary approved. Proceeding with paint suggestions."
-    return state
-
-# Optional: LangGraph wrapper (single node) - not strictly necessary but available
-if StateGraph is not None:
-    def _call_node(state: AgentState) -> AgentState:  # type: ignore
-        result = run_agent(
-            user_text=state.get("user_text", ""),
-            image_uploads=[],  # handled in run_agent normally; this wrapper expects only text/docs
-            doc_uploads=[],
-        )
-        state["reply"] = result["reply"]
-        return state
-
-    graph = StateGraph(AgentState)  # type: ignore
-    graph.add_node("call_openai", _call_node)  # type: ignore
-    graph.add_node("review", _review_node)
-    graph.add_edge(START, "call_openai")  # type: ignore
-    graph.add_edge("call_openai", "review")  # type: ignore
-    graph.add_edge("review", END)  # type: ignore
-    PAINT_GRAPH = graph.compile()  # type: ignore
-else:
-    PAINT_GRAPH = None
+def paint_suggestion(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
+    """Generate paint color suggestions based on user input."""
+    # The run_agent function already has the paint consultant system prompt built-in
+    return run_agent(user_text=user_text, image_uploads=image_uploads, doc_uploads=doc_uploads)    

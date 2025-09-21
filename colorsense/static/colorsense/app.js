@@ -98,19 +98,23 @@
     newYesBtn.addEventListener('click', async () => {
         confirmModal.style.display = 'none';
         // Send confirmation to the server
-        await sendConfirmation(true);
+        await sendConfirmation(true, description);
     });
 
     newNoBtn.addEventListener('click', async () => {
         confirmModal.style.display = 'none';
         // Send rejection to the server
-        await sendConfirmation(false);
+        await sendConfirmation(false, description);
     });
   }
 
-  async function sendConfirmation(confirmed) {
+  async function sendConfirmation(confirmed, description) {
     const form = new FormData();
     form.append('confirm', confirmed);
+    form.append('room_description', description.reply);
+    //form.append('style_preference', description.style_preference);
+    //form.append('images', description.images);
+    //form.append('docs', description.docs);
     const csrftoken = getCookie('csrftoken');
 
     try {
@@ -123,6 +127,11 @@
         const data = await resp.json();
         if (data.ok) {
             alert('Confirmation sent successfully.');
+            const paint_suggestion = appendBubble('paint_suggestion', data.reply);
+            
+            paint_suggestion.textContent = data.reply;
+            //renderSwatches(data.swatches || []);
+            //speak(data.reply || '');
         } else {
             alert(`Error: ${data.error}`);
         }
@@ -162,7 +171,7 @@
       });
 
       const data = await resp.json();
-      console.log(data);
+      //console.log(data);
       if (!data.ok) {
         bubble.textContent = `Error: ${data.error || resp.statusText}`;
         return;
@@ -171,8 +180,8 @@
       // If we have a suggestion ID, open the review window
       if (data.ok) {
         bubble.textContent = 'I have a suggestion for you. Please review it below.';
-        //const suggestion = appendBubble('suggestion', data.reply);
-        bubble.textContent = data.reply;
+        appendBubble('suggestion', data.reply);
+        //suggestion.textContent = data.reply;
         confirmSuggetion(data);
       } else {
         // Direct response (no review needed)

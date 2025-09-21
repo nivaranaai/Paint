@@ -2,11 +2,12 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
-from .agent import run_agent
+from .agent import run_agent, summrise_input, paint_suggestion
 from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
 from django.conf import settings
 import os
 import time
+import pdb
 
 @ensure_csrf_cookie
 def index(request):
@@ -25,51 +26,36 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
-    #confirm = request.POST.get("confirm", "false").strip()
-    #print(confirm)
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
     try:
-        result = run_agent(user_text=message, image_uploads=images, doc_uploads=docs)
-        
+        # Run the agent workflow
+        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs)
+        print(result)
         return JsonResponse({
             "ok": True,
             "reply": result.get("reply", ""),
             "swatches": result.get("swatches", []),
-        })    
+        })
     except Exception as e:
         return JsonResponse({"ok": False, "error": str(e)}, status=500)
 
-
-def review_suggestion(request):
-    """Show a suggestion for user review"""
-    return JsonResponse({"ok": True})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+@require_POST
+def confirm_suggestion(request):
+    """Handle user confirmation of the suggestion."""
+    confirm = request.POST.get("confirm", "false").strip().lower()
+    if confirm == "true":
+        room_description = request.POST.get("room_description", "").strip()
+        print(room_description)
+        images = []
+        docs = []
+        # Run the agent workflow
+        result = run_agent(user_text=room_description, image_uploads=images, doc_uploads=docs)
+        print(result)
+        return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result.get("reply", "")})
+    else:
+        return JsonResponse({"ok": False, "message": "Suggestion rejected."})
 
 
 
@@ -98,65 +84,3 @@ def upload_images(request):
         return render(request, "viewer.html", {"mesh_url": mesh_url})
 
     return render(request, "upload.html")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def review_suggestion(request):
-    """Show a suggestion for user review"""
-    suggestion = suggestions_store.get(suggestion_id)
-    if not suggestion:
-        return HttpResponseBadRequest("Suggestion not found or expired")
-        
-    if request.method == "POST":
-        action = request.POST.get("action")
-        if action == "approve":
-            suggestion.status = "accepted"
-            return JsonResponse({"status": "accepted"})
-        elif action == "reject":
-            suggestion.status = "rejected"
-            return JsonResponse({"status": "rejected"})
-    
-    return render(request, "colorsense/review.html", {"suggestion": suggestion})
-
-def get_suggestion_status(request, suggestion_id):
-    """Get the current status of a suggestion"""
-    suggestion = suggestions_store.get(suggestion_id)
-    if not suggestion:
-        return JsonResponse({"error": "Not found"}, status=404)
-        
-    return JsonResponse({
-        "status": suggestion.status,
-        "reply": suggestion.reply,
-        "swatches": suggestion.swatches
-    })
-
-@require_POST
-def confirm_suggestion(request):
-    """Handle user confirmation of the suggestion."""
-    confirm = request.POST.get("confirm", "false").strip().lower()
-    if confirm == "true":
-        return JsonResponse({"ok": True, "message": "Suggestion confirmed."})
-    else:
-        return JsonResponse({"ok": False, "message": "Suggestion rejected."})
