@@ -1,5 +1,16 @@
+# Django project requirements
+django
+pycolmap
+open3d
+numpy
+pillow
+opencv-python
+scikit-learn
 
-
-
-
-pip install django pycolmap open3d numpy pillow opencv-python
+# SAM Colorizer requirements
+torch
+torchvision
+segment-anything
+matplotlib
+openai
+requests

@@ -29,6 +29,20 @@ OPENAI_API_KEY = 'sk-proj-IGdAGVbf35fPHQEJJKbfnRf4RAn-1zIfVGC7JpNTYGFG_bKKmQ8NYs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
 ALLOWED_HOSTS = []
 
 
@@ -59,7 +73,7 @@ ROOT_URLCONF = 'paintme.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'colorsense', 'colorizer_opencv', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
