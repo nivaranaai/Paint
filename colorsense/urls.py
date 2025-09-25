@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .colorizer_opencv import views as colorizer_views
+from .groq_api_impl import views as groq_views
 
 urlpatterns = [
     path('', views.index, name='colorsense_index'),
@@ -17,4 +18,11 @@ urlpatterns = [
     path('api/colorizer/session/<str:session_id>/', colorizer_views.get_session_image, name='colorizer_session'),
     path('api/colorizer/cleanup/', colorizer_views.cleanup_session, name='colorizer_cleanup'),
     path('colorizer/demo/', colorizer_views.colorizer_demo, name='colorizer_demo'),
+    
+    # Groq API endpoints
+    path('api/groq/chat/', groq_views.groq_chat, name='groq_chat'),
+    path('api/groq/vision/', groq_views.groq_vision, name='groq_vision'),
+    path('api/groq/paint/', groq_views.groq_paint_consultation, name='groq_paint'),
+    path('api/groq/models/', groq_views.groq_models, name='groq_models'),
+    path('groq/demo/', groq_views.groq_demo, name='groq_demo'),
 ]

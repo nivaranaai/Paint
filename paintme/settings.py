@@ -73,7 +73,10 @@ ROOT_URLCONF = 'paintme.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'colorsense', 'colorizer_opencv', 'templates')],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'colorsense', 'colorizer_opencv', 'templates'),
+            os.path.join(BASE_DIR, 'colorsense', 'groq_api_impl', 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
