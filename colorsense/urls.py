@@ -6,6 +6,7 @@ from .groq_api_impl import views as groq_views
 urlpatterns = [
     path('', views.nivarana_index, name='colorsense_index'),
     path('colorsense/', views.index, name='colorsense_app'),
+    path('analysis/', views.analysis_page, name='analysis_page'),
     path('original/', views.index_original, name='index_original'),
     path('test-static/', views.test_static, name='test_static'),
     path('upload/', views.upload, name='upload'),

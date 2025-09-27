@@ -178,25 +178,38 @@ function createImageCard(imageSrc, index, fileName) {
 }
 
 async function submitAnalysis() {
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsSection.style.display = 'block';
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>Analyzing images...</div>';
+    // Collect preferences
+    const preferences = {
+        weather: document.getElementById('weather').value,
+        locality: document.getElementById('locality').value,
+        location: document.getElementById('location').value,
+        budget: document.getElementById('budget').value,
+        images: uploadedImages.map((file, index) => ({
+            emotion: document.getElementById(`emotion_${index}`)?.value || '',
+            direction: document.getElementById(`direction_${index}`)?.value || '',
+            roomtype: document.getElementById(`roomtype_${index}`)?.value || ''
+        }))
+    };
     
-    // Mock analysis for demo
-    setTimeout(() => {
-        resultsContainer.innerHTML = `
-            <div class="alert alert-success">
-                <h6>AI Analysis Complete!</h6>
-                <p>Based on your ${uploadedImages.length} images and preferences, here are personalized color recommendations:</p>
-                <div class="d-flex gap-2 mt-3">
-                    <div style="width: 50px; height: 50px; background: #B8D4E3; border-radius: 8px;" title="Soft Blue"></div>
-                    <div style="width: 50px; height: 50px; background: #9CAF88; border-radius: 8px;" title="Sage Green"></div>
-                    <div style="width: 50px; height: 50px; background: #F7F3E9; border-radius: 8px;" title="Warm White"></div>
-                </div>
-            </div>
-        `;
-    }, 2000);
+    // Convert images to base64
+    const imagePromises = uploadedImages.map(file => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(file);
+        });
+    });
+    
+    const imageBase64Array = await Promise.all(imagePromises);
+    
+    // Store data in sessionStorage
+    sessionStorage.setItem('analysisData', JSON.stringify({
+        images: imageBase64Array,
+        preferences: JSON.stringify(preferences)
+    }));
+    
+    // Redirect to analysis page
+    window.location.href = '/analysis/';
 }
 </script>
 {% endblock %}

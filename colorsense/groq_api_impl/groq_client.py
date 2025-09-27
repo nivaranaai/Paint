@@ -20,7 +20,9 @@ class GroqClient:
         self.api_key = api_key or os.environ.get("GROQ_API_KEY")
         
         if not self.api_key:
-            raise ValueError("GROQ_API_KEY environment variable is required")
+            logger.warning("GROQ_API_KEY not found - Groq functionality will be disabled")
+            self.client = None
+            return
         
         if GROQ_SDK_AVAILABLE:
             self.client = Groq(api_key=self.api_key)
@@ -40,6 +42,9 @@ class GroqClient:
     
     def chat(self, model: str, messages: List[Dict[str, Any]], temperature: float = 0.7) -> str:
         """Send chat completion request"""
+        if not self.api_key:
+            return "Groq API key not configured"
+        
         try:
             if GROQ_SDK_AVAILABLE:
                 completion = self.client.chat.completions.create(
@@ -76,6 +81,9 @@ class GroqClient:
     
     def vision_chat(self, model: str, text: str, image_base64: str, temperature: float = 0.7) -> str:
         """Send vision chat request"""
+        if not self.api_key:
+            return "Groq API key not configured"
+        
         try:
             messages = [
                 {
@@ -127,6 +135,9 @@ class GroqClient:
     
     def get_available_models(self) -> List[str]:
         """Get available models"""
+        if not self.api_key:
+            return self.available_models
+        
         try:
             if GROQ_SDK_AVAILABLE:
                 models = self.client.models.list()

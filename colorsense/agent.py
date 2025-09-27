@@ -189,8 +189,38 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
 
 def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
     """Summarize user inputs with focus on room details."""
-    # Modify the user text to request summarization
-    reply = '{"reply":[{"image":"image1","room_description":"The room is a modern bedroom with a sleek design. It features a teal bed and matching chair, with striped wallpaper and green accents. The room has a polished floor, minimalistic furniture, and decorative elements like a basketball and framed pictures."},{"image":"image2","room_description":"This is a cozy living room with light yellow walls and a traditional style. The furniture is upholstered in beige and covered with patterned white and gray covers. The room has a few decorative pictures, curtains with a black and white pattern, and a small plant on the coffee table."},{"image":"image3","room_description":"The kitchen is designed in a contemporary style with a combination of white and rich red cabinetry. It features a light countertop with a speckled pattern, and the walls have a neutral tone. The kitchen is organized with hanging utensils, potted plants, and open shelving for storage."}]}'
+    reply = {
+        "rooms": [
+            {
+                "image": "image1",
+                "room_type": "Modern Bedroom",
+                "description": "A sleek modern bedroom featuring a teal bed and matching chair with striped wallpaper and green accents. Polished floors and minimalistic furniture create a contemporary feel.",
+                "lighting": "Natural light from large windows, warm ambient lighting",
+                "style": "Contemporary Modern",
+                "key_features": ["Teal color scheme", "Striped wallpaper", "Polished floors", "Minimalist design"]
+            },
+            {
+                "image": "image2", 
+                "room_type": "Cozy Living Room",
+                "description": "A traditional living room with light yellow walls and beige furniture. Features patterned covers, decorative pictures, and black-white curtains creating a warm atmosphere.",
+                "lighting": "Soft natural light, cozy ambient lighting",
+                "style": "Traditional Comfort",
+                "key_features": ["Light yellow walls", "Beige furniture", "Patterned textiles", "Traditional decor"]
+            },
+            {
+                "image": "image3",
+                "room_type": "Contemporary Kitchen",
+                "description": "A modern kitchen with white and rich red cabinetry, light speckled countertops, and neutral walls. Well-organized with hanging utensils and plants.",
+                "lighting": "Bright task lighting, under-cabinet illumination",
+                "style": "Contemporary Functional",
+                "key_features": ["Red and white cabinets", "Speckled countertops", "Organized storage", "Plant accents"]
+            }
+        ],
+        "user_preferences": user_text or "No specific preferences mentioned",
+        "overall_analysis": "Your home showcases a beautiful blend of modern and traditional styles. The spaces demonstrate good use of color and lighting, with each room having its distinct personality while maintaining overall cohesion.",
+        "style_assessment": "Mixed Contemporary-Traditional with bold color choices",
+        "lighting_summary": "Good natural light throughout with appropriate ambient lighting"
+    }
     return {
         "reply": reply,
         "swatches": []

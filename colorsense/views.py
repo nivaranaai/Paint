@@ -31,6 +31,10 @@ def test_static(request):
     """Test static files."""
     return render(request, "colorsense/test_static.html")
 
+def analysis_page(request):
+    """Analysis page with progressive loader."""
+    return render(request, "colorsense/analysis.html")
+
 @require_POST
 def agent_api(request):
     """

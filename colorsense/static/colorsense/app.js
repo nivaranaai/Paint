@@ -283,8 +283,7 @@
       messageEl.focus();
       return;
     }
-    //console.log(msg, images, docs);
-    //alert("Hello");
+
     // Add user message to chat
     appendBubble('user', msg || '(no text)');
     messageEl.value = '';
@@ -293,9 +292,14 @@
     form.append('message', msg);
     for (const f of images) form.append('images', f);
     for (const f of docs) form.append('docs', f);
-    //form.append('confirm', false);
     const csrftoken = getCookie('csrftoken');
-    const bubble = appendBubble('assistant', 'Thinking…');
+    
+    // Progressive loader
+    const bubble = appendBubble('assistant', 'Calling ColorSense Agent...');
+    
+    setTimeout(() => {
+      bubble.textContent = 'Analysing home details and user preferences...';
+    }, 3000);
 
     try {
       const resp = await fetch('/api/agent/', {
@@ -305,47 +309,14 @@
       });
 
       const data = await resp.json();
-      //console.log(data);
       if (!data.ok) {
         bubble.textContent = `Error: ${data.error || resp.statusText}`;
         return;
       }
 
-      // If we have a suggestion ID, open the review window
       if (data.ok) {
-        bubble.textContent = 'I have a suggestion for you. Please review it below.';
-        //appendBubble('suggestion', data.reply);
-        
-        // Display uploaded images (without recommendations since /api/agent/ doesn't return them)
-        console.log(data.reply);
-        const parsedreply = JSON.parse(data.reply);
-        console.log(parsedreply.reply);
-        const files = Array.from(images);
-        files.forEach(function(item, index){
-          const suggetionContainer = document.createElement('div');
-          const img = document.createElement('img');
-          img.src = URL.createObjectURL(item);
-          img.style.cssText = 'max-width: 300px; max-height: 300px; border-radius: 5px; margin: 10px 0; display: block;';
-          suggetionContainer.appendChild(img);
-          console.log(parsedreply.reply[index]);
-          if(parsedreply.reply[index] && parsedreply.reply[index].room_description){
-            const desc = document.createElement('p');
-            desc.textContent = parsedreply.reply[index].room_description;
-            desc.style.cssText = 'margin: 5px 0; font-size: 14px; color: #999;';
-            suggetionContainer.appendChild(desc);
-          }
-          bubble.appendChild(suggetionContainer);
-        });
-        
-
-
-        data.images = images;
-        confirmSuggetion(data);
-      } else {
-        // Direct response (no review needed)
-        bubble.textContent = data.reply || 'No response';
-        renderSwatches(data.swatches || []);
-        speak(data.reply || '');
+        bubble.innerHTML = '';
+        displayHomeAnalysis(data.reply, images, msg);
       }
     } catch (err) {
       bubble.textContent = `Network error: ${err}`;
@@ -407,4 +378,95 @@
       recognition.start();
     }
   });
+  function displayHomeAnalysis(analysisData, images, userPrefs) {
+    const container = document.createElement('div');
+    container.className = 'analysis-container';
+    container.style.cssText = 'margin: 20px 0; padding: 20px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa;';
+    
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = 'Home Analysis Results';
+    title.style.cssText = 'margin: 0 0 20px 0; color: #333; text-align: center;';
+    container.appendChild(title);
+    
+    // User preferences card
+    const prefsCard = document.createElement('div');
+    prefsCard.className = 'prefs-card';
+    prefsCard.style.cssText = 'margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff;';
+    prefsCard.innerHTML = `<h3 style="margin: 0 0 10px 0; color: #333;">Your Preferences</h3><p style="margin: 0; color: #666;">${analysisData.user_preferences}</p>`;
+    container.appendChild(prefsCard);
+    
+    // Overall analysis card
+    const overallCard = document.createElement('div');
+    overallCard.className = 'overall-card';
+    overallCard.style.cssText = 'margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f0f8ff;';
+    overallCard.innerHTML = `<h3 style="margin: 0 0 10px 0; color: #333;">Overall Assessment</h3><p style="margin: 0 0 10px 0; color: #555;">${analysisData.overall_analysis}</p><p style="margin: 0; color: #666; font-size: 14px;"><strong>Style:</strong> ${analysisData.style_assessment}</p><p style="margin: 5px 0 0 0; color: #666; font-size: 14px;"><strong>Lighting:</strong> ${analysisData.lighting_summary}</p>`;
+    container.appendChild(overallCard);
+    
+    // Room analysis cards
+    const roomsTitle = document.createElement('h3');
+    roomsTitle.textContent = 'Room Analysis';
+    roomsTitle.style.cssText = 'margin: 20px 0 15px 0; color: #333;';
+    container.appendChild(roomsTitle);
+    
+    const files = Array.from(images);
+    analysisData.rooms.forEach((room, index) => {
+      const roomCard = document.createElement('div');
+      roomCard.className = 'room-card';
+      roomCard.style.cssText = 'margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #fff; display: flex; gap: 15px;';
+      
+      if (files[index]) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(files[index]);
+        img.style.cssText = 'width: 200px; height: 150px; object-fit: cover; border-radius: 5px; flex-shrink: 0;';
+        roomCard.appendChild(img);
+      }
+      
+      const details = document.createElement('div');
+      details.style.cssText = 'flex: 1;';
+      details.innerHTML = `
+        <h4 style="margin: 0 0 10px 0; color: #333;">${room.room_type}</h4>
+        <p style="margin: 0 0 10px 0; color: #555; font-size: 14px;">${room.description}</p>
+        <p style="margin: 0 0 5px 0; color: #666; font-size: 13px;"><strong>Lighting:</strong> ${room.lighting}</p>
+        <p style="margin: 0 0 10px 0; color: #666; font-size: 13px;"><strong>Style:</strong> ${room.style}</p>
+        <div style="margin: 10px 0 0 0;"><strong style="color: #333; font-size: 13px;">Key Features:</strong>
+        <ul style="margin: 5px 0 0 20px; padding: 0; color: #666; font-size: 12px;">
+          ${room.key_features.map(feature => `<li>${feature}</li>`).join('')}
+        </ul></div>
+      `;
+      roomCard.appendChild(details);
+      container.appendChild(roomCard);
+    });
+    
+    // Action buttons
+    const actions = document.createElement('div');
+    actions.style.cssText = 'margin: 20px 0 0 0; text-align: center; display: flex; gap: 15px; justify-content: center;';
+    
+    const acceptBtn = document.createElement('button');
+    acceptBtn.textContent = 'Accept Analysis';
+    acceptBtn.style.cssText = 'padding: 12px 24px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;';
+    acceptBtn.addEventListener('click', () => handleAnalysisDecision(true, analysisData, images));
+    
+    const rejectBtn = document.createElement('button');
+    rejectBtn.textContent = 'Reject Analysis';
+    rejectBtn.style.cssText = 'padding: 12px 24px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;';
+    rejectBtn.addEventListener('click', () => handleAnalysisDecision(false, analysisData, images));
+    
+    actions.appendChild(acceptBtn);
+    actions.appendChild(rejectBtn);
+    container.appendChild(actions);
+    
+    chat.appendChild(container);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  
+  async function handleAnalysisDecision(accepted, analysisData, images) {
+    if (accepted) {
+      const bubble = appendBubble('assistant', 'Great! Proceeding with paint recommendations...');
+      await sendConfirmation(true, { reply: JSON.stringify(analysisData), images: images });
+    } else {
+      appendBubble('assistant', 'Analysis rejected. Please provide more details or different images for better results.');
+    }
+  }
+
 })();

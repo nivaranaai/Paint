@@ -1,0 +1,170 @@
+{% extends 'colorsense/base_nivarana.html' %}
+{% load static %}
+
+{% block title %}PaintSense – Home Analysis{% endblock %}
+
+{% block content %}
+<div class="page-title dark-background" style="background-image: url({% static 'logis/img/page-title-bg.jpg' %}); padding: 120px 0 60px 0;">
+  <div class="container position-relative">
+    <h1>PaintSense</h1>
+    <p>Home Analysis Results</p>
+  </div>
+</div>
+
+<section class="service-details section">
+  <div class="container">
+    <div id="loader" class="text-center" style="padding: 50px;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <h4 id="loader-text" class="mt-3">Calling ColorSense Agent...</h4>
+    </div>
+    <div id="content" style="display: none;"></div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const loader = document.getElementById('loader');
+  const loaderText = document.getElementById('loader-text');
+  const content = document.getElementById('content');
+  
+  // Get data from sessionStorage
+  const analysisData = sessionStorage.getItem('analysisData');
+  let imageBase64Array = [];
+  let preferences = 'No preferences specified';
+  
+  if (analysisData) {
+    const data = JSON.parse(analysisData);
+    imageBase64Array = data.images || [];
+    preferences = data.preferences || 'No preferences specified';
+    sessionStorage.removeItem('analysisData');
+  }
+  
+  // Step 1: Show first loader message for 5 seconds
+  setTimeout(() => {
+    loaderText.textContent = 'Analysing home details and user preferences...';
+  }, 5000);
+  
+  // Step 2: Show analysis results after 10 seconds total
+  setTimeout(() => {
+    loader.style.display = 'none';
+    content.style.display = 'block';
+    showAnalysisResults(imageBase64Array, preferences);
+  }, 10000);
+});
+
+function showAnalysisResults(imageBase64Array, preferences) {
+  const content = document.getElementById('content');
+  
+  // Parse preferences if it's JSON
+  let prefsText = preferences;
+  let prefsObj = {};
+  try {
+    prefsObj = JSON.parse(preferences);
+    prefsText = `
+      <div class="row">
+        <div class="col-md-3"><strong>Weather:</strong> ${prefsObj.weather || 'Not specified'}</div>
+        <div class="col-md-3"><strong>Locality:</strong> ${prefsObj.locality || 'Not specified'}</div>
+        <div class="col-md-3"><strong>Location:</strong> ${prefsObj.location || 'Not specified'}</div>
+        <div class="col-md-3"><strong>Budget:</strong> ${prefsObj.budget || 'Not specified'}</div>
+      </div>
+    `;
+  } catch (e) {
+    // If not JSON, use as is
+  }
+  
+  content.innerHTML = `
+    <!-- Preferences -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Preferences</h5>
+          </div>
+          <div class="card-body">
+            <div class="text-muted">${prefsText}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Analysis Results -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">AI Analysis Results</h5>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-info">
+              <h6>Overall Assessment</h6>
+              <p>Your home showcases a beautiful blend of modern and traditional styles. The spaces demonstrate good use of color and lighting, with each room having its distinct personality while maintaining overall cohesion.</p>
+              <p><strong>Style:</strong> Mixed Contemporary-Traditional with bold color choices</p>
+              <p><strong>Lighting:</strong> Good natural light throughout with appropriate ambient lighting</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Room Analysis -->
+    <div class="row mb-4" id="room-analysis"></div>
+    
+    <!-- Action Buttons -->
+    <div class="row">
+      <div class="col-12 text-center">
+        <button class="btn btn-success btn-lg me-3" onclick="acceptAnalysis()">Accept Analysis</button>
+        <button class="btn btn-danger btn-lg" onclick="rejectAnalysis()">Reject Analysis</button>
+      </div>
+    </div>
+  `;
+  
+  
+  // Generate room analysis cards based on uploaded images
+  const roomAnalysisContainer = document.getElementById('room-analysis');
+  if (imageBase64Array && imageBase64Array.length > 0 && prefsObj.images) {
+    imageBase64Array.forEach((base64, index) => {
+      const imagePrefs = prefsObj.images[index] || {};
+      const roomType = imagePrefs.roomtype || 'Unknown Room';
+      const emotion = imagePrefs.emotion || 'Not specified';
+      const direction = imagePrefs.direction || 'Not specified';
+      
+      const col = document.createElement('div');
+      col.className = 'col-md-6 col-lg-4 mb-4';
+      
+      col.innerHTML = `
+        <div class="card h-100">
+          <img src="${base64}" class="card-img-top" style="height: 200px; object-fit: cover;">
+          <div class="card-header bg-warning text-dark">
+            <h6 class="mb-0">${roomType}</h6>
+          </div>
+          <div class="card-body">
+            <p class="small"><strong>Emotion:</strong> ${emotion}</p>
+            <p class="small"><strong>Direction:</strong> ${direction}</p>
+            <p class="small"><strong>Analysis:</strong> AI-powered analysis shows this ${roomType.toLowerCase()} has great potential for color enhancement based on lighting and existing features.</p>
+          </div>
+        </div>
+      `;
+      
+      roomAnalysisContainer.appendChild(col);
+    });
+  } else {
+    roomAnalysisContainer.innerHTML = '<div class="col-12"><p class="text-muted">No room analysis available</p></div>';
+  }
+}
+
+function acceptAnalysis() {
+  alert('Analysis accepted! Proceeding with paint recommendations...');
+  // Redirect to paint recommendations or next step
+}
+
+function rejectAnalysis() {
+  alert('Analysis rejected. Please provide more details or different images.');
+  // Redirect back to upload page
+  window.location.href = '/colorsense/';
+}
+</script>
+{% endblock %}
