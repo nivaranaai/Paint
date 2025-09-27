@@ -5,11 +5,18 @@ from typing import List, Dict, Any
 
 
 
-# OpenAI client wrapper (supports new and legacy SDKs)
-class OpenAIClient:
-    def __init__(self):
+# AI client wrapper (supports OpenAI and Groq)
+class AIClient:
+    def __init__(self, provider: str = "openai"):
         self._client = None
-        self._mode = None
+        self._provider = provider.lower()
+        
+        if self._provider == "groq":
+            self._init_groq()
+        else:
+            self._init_openai()
+    
+    def _init_openai(self):
         api_key = os.environ.get("OPENAI_API_KEY")
         if not api_key:
             try:
@@ -19,54 +26,49 @@ class OpenAIClient:
                 api_key = None
         if not api_key:
             raise RuntimeError("OPENAI_API_KEY is not set in environment or Django settings.")
+        
         try:
-            # New SDK style
             from openai import OpenAI  # type: ignore
             self._client = OpenAI(api_key=api_key)
-            self._mode = "new"
         except Exception:
-            # Legacy SDK fallback
-            import openai  # type: ignore
-            openai.api_key = api_key
-            self._client = openai
-            self._mode = "legacy"
+            raise RuntimeError("OpenAI client initialization failed")
+    
+    def _init_groq(self):
+        api_key = os.environ.get("GROQ_API_KEY")
+        if not api_key:
+            try:
+                from django.conf import settings as dj_settings  # type: ignore
+                api_key = getattr(dj_settings, "GROQ_API_KEY", None)
+            except Exception:
+                api_key = None
+        if not api_key:
+            raise RuntimeError("GROQ_API_KEY is not set in environment or Django settings.")
+        
+        try:
+            from groq import Groq  # type: ignore
+            self._client = Groq(api_key=api_key)
+        except Exception:
+            raise RuntimeError("Groq client initialization failed")
 
     def chat(self, model: str, messages: List[Dict[str, Any]], response_format: Dict[str, Any] = None) -> str:
-        if self._mode == "new":
-            kwargs = {
-                "model": model,
-                "messages": messages,
-                "temperature": 0.6,
-            }
-            if response_format:
-                kwargs["response_format"] = response_format
-            resp = self._client.chat.completions.create(**kwargs)
-        else:
-            try:
-                # Legacy SDK (<=0.x)
-                kwargs = {
-                    "model": model,
-                    "messages": messages,
-                    "temperature": 0.6,
-                }
-                if response_format:
-                    kwargs["response_format"] = response_format
-                resp = self._client.ChatCompletion.create(**kwargs)
-            except Exception:
-                # Some environments expose the new-style endpoint on the module
-                kwargs = {
-                    "model": model,
-                    "messages": messages,
-                    "temperature": 0.6,
-                }
-                if response_format:
-                    kwargs["response_format"] = response_format
-                resp = self._client.chat.completions.create(**kwargs)
-        # Normalize return across SDKs
-        try:
-            return resp.choices[0].message.content or ""
-        except Exception:
-            return resp["choices"][0]["message"]["content"]
+        kwargs = {
+            "model": model,
+            "messages": messages,
+            "temperature": 0.6,
+        }
+        if response_format and self._provider == "openai":
+            kwargs["response_format"] = response_format
+        
+        resp = self._client.chat.completions.create(**kwargs)
+        content = resp.choices[0].message.content or ""
+        
+        # Clean Groq response - remove markdown code blocks
+        if self._provider == "groq" and content.startswith("```"):
+            lines = content.split("\n")
+            if lines[0].startswith("```") and lines[-1].strip() == "```":
+                content = "\n".join(lines[1:-1])
+        
+        return content
 
 
 def file_to_data_url(upload) -> str:
@@ -110,6 +112,7 @@ def build_messages(user_text: str, image_data_urls: List[str], doc_texts: List[s
             "type": "text",
             "text": "\n\n".join(text_content)
         })
+
     
     # Add images for vision API
     if image_data_urls:
@@ -132,12 +135,12 @@ def extract_hex_codes(text: str) -> List[str]:
 
 
 
-def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
+def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any], provider: str = "groq") -> Dict[str, Any]:
     """
     Orchestrate the process: summarize inputs, confirm summary, and generate paint suggestions.
     Returns dict with 'reply' and 'swatches' (list of hex codes).
     """
-    client = OpenAIClient()
+    client = AIClient(provider)
 
     # Convert images to data URLs
     image_data_urls: List[str] = []
@@ -168,11 +171,11 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
         finally:
             doc.seek(0)
 
-    # Use vision model if images are provided, otherwise use regular model
-    if image_data_urls:
-        model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o")  # Vision capable model
+    # Select model based on provider and image presence
+    if provider == "groq":
+        model = "meta-llama/llama-4-maverick-17b-128e-instruct"
     else:
-        model = os.environ.get("PAINTSENSE_MODEL", "gpt-4o-mini")
+        model = "gpt-4o" if image_data_urls else "gpt-4o-mini"
     
     # Generate paint suggestions directly
     response_format = { "type": "json_object" }
@@ -187,27 +190,27 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
     }
     
 
-def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
+def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[Any], provider: str = "groq") -> Dict[str, Any]:
     """Summarize user inputs with focus on room details."""
     # Modify the user text to request summarization
     reply = '{"reply":[{"image":"image1","room_description":"The room is a modern bedroom with a sleek design. It features a teal bed and matching chair, with striped wallpaper and green accents. The room has a polished floor, minimalistic furniture, and decorative elements like a basketball and framed pictures."},{"image":"image2","room_description":"This is a cozy living room with light yellow walls and a traditional style. The furniture is upholstered in beige and covered with patterned white and gray covers. The room has a few decorative pictures, curtains with a black and white pattern, and a small plant on the coffee table."},{"image":"image3","room_description":"The kitchen is designed in a contemporary style with a combination of white and rich red cabinetry. It features a light countertop with a speckled pattern, and the walls have a neutral tone. The kitchen is organized with hanging utensils, potted plants, and open shelving for storage."}]}'
-    return {
-        "reply": reply,
-        "swatches": []
-    }
+    # return {
+    #     "reply": reply,
+    #     "swatches": []
+    # }
     summary_request = f"Please elaborate and summarize the following room description: {user_text}" + "retrun response in json format {'reply':{image: string,room_description:string}}"
     return run_agent(user_text=summary_request, image_uploads=image_uploads, doc_uploads=doc_uploads)
 
 
-def paint_suggestion(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
+def paint_suggestion(user_text: str, image_uploads: List[Any], doc_uploads: List[Any], provider: str = "groq") -> Dict[str, Any]:
     """Generate paint color suggestions based on user input."""
     # The run_agent function already has the paint consultant system prompt built-in
-    reply = {"recommendations": [{"image": 1,"colors": [{"color": "Soft White","hex": "#F0F4F8","finish": "eggshell","rationale": "Soft White will brighten the room and provide a clean contrast to the bold turquoise elements, making them pop."},{"color": "Coral Pink","hex": "#FF6F61","finish": "matte","rationale": "Coral Pink adds warmth and a playful touch that complements the turquoise without overwhelming the space."},{"color": "Charcoal Gray","hex": "#333333","finish": "semi-gloss","rationale": "Charcoal Gray can add depth and sophistication, creating a modern edge against the vibrant colors."}]},{"image": 2,"colors": [{"color": "Creamy Beige","hex": "#E6D9C9","finish": "eggshell","rationale": "Creamy Beige will enhance the warm tones already present and create a seamless flow with the furniture."},{"color": "Warm Taupe","hex": "#C2B280","finish": "matte","rationale": "Warm Taupe adds a subtle contrast to the yellow walls while maintaining a cozy and inviting atmosphere."},{"color": "Soft Sage Green","hex": "#B7C9A3","finish": "matte","rationale": "Soft Sage Green introduces a refreshing element that complements the warm tones and adds a natural touch."}]},{"image": 3,"colors": [{"color": "Pale Gray","hex": "#D3D3D3","finish": "eggshell","rationale": "Pale Gray will provide a neutral backdrop that balances the bold red cabinetry and light countertops."},{"color": "Dusty Rose","hex": "#D6A8B4","finish": "matte","rationale": "Dusty Rose adds a soft, warm accent that harmonizes with the richness of the cabinetry without clashing."},{"color": "Muted Olive","hex": "#A8B95B","finish": "matte","rationale": "Muted Olive introduces a natural element that pairs well with the red cabinetry and adds depth to the space."}]}],"preparationtips": "Ensure surfaces are clean and free of dust. Use painters tape to protect edges and achieve clean lines. Test colors on small sections of the wall before fully committing."}
+    # reply = {"recommendations": [{"image": 1,"colors": [{"color": "Soft White","hex": "#F0F4F8","finish": "eggshell","rationale": "Soft White will brighten the room and provide a clean contrast to the bold turquoise elements, making them pop."},{"color": "Coral Pink","hex": "#FF6F61","finish": "matte","rationale": "Coral Pink adds warmth and a playful touch that complements the turquoise without overwhelming the space."},{"color": "Charcoal Gray","hex": "#333333","finish": "semi-gloss","rationale": "Charcoal Gray can add depth and sophistication, creating a modern edge against the vibrant colors."}]},{"image": 2,"colors": [{"color": "Creamy Beige","hex": "#E6D9C9","finish": "eggshell","rationale": "Creamy Beige will enhance the warm tones already present and create a seamless flow with the furniture."},{"color": "Warm Taupe","hex": "#C2B280","finish": "matte","rationale": "Warm Taupe adds a subtle contrast to the yellow walls while maintaining a cozy and inviting atmosphere."},{"color": "Soft Sage Green","hex": "#B7C9A3","finish": "matte","rationale": "Soft Sage Green introduces a refreshing element that complements the warm tones and adds a natural touch."}]},{"image": 3,"colors": [{"color": "Pale Gray","hex": "#D3D3D3","finish": "eggshell","rationale": "Pale Gray will provide a neutral backdrop that balances the bold red cabinetry and light countertops."},{"color": "Dusty Rose","hex": "#D6A8B4","finish": "matte","rationale": "Dusty Rose adds a soft, warm accent that harmonizes with the richness of the cabinetry without clashing."},{"color": "Muted Olive","hex": "#A8B95B","finish": "matte","rationale": "Muted Olive introduces a natural element that pairs well with the red cabinetry and adds depth to the space."}]}],"preparationtips": "Ensure surfaces are clean and free of dust. Use painters tape to protect edges and achieve clean lines. Test colors on small sections of the wall before fully committing."}
 
-    return {
-        "reply": reply,
-        "swatches": []
-    }
+    # return {
+    #     "reply": reply,
+    #     "swatches": []
+    # }
 
     user_text = user_text + "\n\n" + "Please provide your response in JSON format with the recommendations. as follows:\n\n"+ '"recommendations": [ {"image": "small description eg bed room, kitchen etc","colors": [{"color": "string","hex": "string","finish": "string","rationale": "string"}]}],"preparationtips": "string"'              
     return run_agent(user_text=user_text, image_uploads=image_uploads, doc_uploads=doc_uploads)    

@@ -27,12 +27,13 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
+    provider = request.POST.get("provider", "groq")
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
     try:
         # Run the agent workflow
-        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs)
+        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs, provider=provider)
         print(result)
         return JsonResponse({
             "ok": True,
