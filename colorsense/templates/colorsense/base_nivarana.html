@@ -47,7 +47,7 @@
         <div class="col-lg-2 col-6 footer-links">
           <h4>Services</h4>
           <ul>
-            <li><a href="{% url 'index' %}">ColorSense</a></li>
+            <li><a href="{% url 'colorsense_app' %}">ColorSense</a></li>
             <li><a href="{% url 'groq_demo' %}">Groq AI</a></li>
           </ul>
         </div>
@@ -60,6 +60,7 @@
 
   <script src="{% static 'logis/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
   <script src="{% static 'logis/vendor/aos/aos.js' %}"></script>
+  <script src="{% static 'logis/vendor/purecounter/purecounter_vanilla.js' %}"></script>
   <script src="{% static 'logis/js/main.js' %}"></script>
   {% block extra_js %}{% endblock %}
 </body>

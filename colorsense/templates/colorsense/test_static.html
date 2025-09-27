@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Static Files Test</title>
+    <link href="{% static 'logis/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <style>
+        .test-box {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Static Files Debug</h1>
+        
+        <div class="test-box">
+            <h3>Bootstrap Test</h3>
+            <button class="btn btn-primary">Primary Button</button>
+            <button class="btn btn-success">Success Button</button>
+        </div>
+        
+        <div class="test-box">
+            <h3>Image Test</h3>
+            <img src="{% static 'logis/img/hero-img.svg' %}" alt="Hero Image" style="max-width: 200px;">
+        </div>
+        
+        <div class="test-box">
+            <h3>Static URLs</h3>
+            <p>Bootstrap CSS: {% static 'logis/vendor/bootstrap/css/bootstrap.min.css' %}</p>
+            <p>Hero Image: {% static 'logis/img/hero-img.svg' %}</p>
+            <p>Main CSS: {% static 'logis/css/main.css' %}</p>
+        </div>
+    </div>
+</body>
+</html>

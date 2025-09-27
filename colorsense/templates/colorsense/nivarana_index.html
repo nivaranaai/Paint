@@ -7,12 +7,44 @@
 <!-- Hero Section -->
 <section id="hero" class="hero section dark-background">
   <img src="{% static 'logis/img/world-dotted-map.png' %}" alt="" class="hero-bg" data-aos="fade-in">
+  
   <div class="container">
     <div class="row gy-4 d-flex justify-content-between">
       <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
         <h2 data-aos="fade-up">AI-Powered Solutions for Modern Businesses</h2>
-        <p data-aos="fade-up" data-aos-delay="100">Transform your operations with cutting-edge artificial intelligence. From intelligent paint consultation to advanced analytics.</p>
+        <p data-aos="fade-up" data-aos-delay="100">Transform your operations with cutting-edge artificial intelligence. From intelligent paint consultation to advanced analytics, Nivarana.ai delivers innovation that drives results.</p>
+
+        <div class="row gy-4" data-aos="fade-up" data-aos-delay="300">
+          <div class="col-lg-3 col-6">
+            <div class="stats-item text-center w-100 h-100">
+              <span data-purecounter-start="0" data-purecounter-end="50" data-purecounter-duration="0" class="purecounter">50</span>
+              <p>AI Models</p>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="stats-item text-center w-100 h-100">
+              <span data-purecounter-start="0" data-purecounter-end="1000" data-purecounter-duration="0" class="purecounter">1000</span>
+              <p>Consultations</p>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="stats-item text-center w-100 h-100">
+              <span data-purecounter-start="0" data-purecounter-end="24" data-purecounter-duration="0" class="purecounter">24</span>
+              <p>Hours Support</p>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-6">
+            <div class="stats-item text-center w-100 h-100">
+              <span data-purecounter-start="0" data-purecounter-end="99" data-purecounter-duration="0" class="purecounter">99</span>
+              <p>% Accuracy</p>
+            </div>
+          </div>
+        </div>
       </div>
+
       <div class="col-lg-5 order-1 order-lg-2 hero-img" data-aos="zoom-out">
         <img src="{% static 'logis/img/hero-img.svg' %}" class="img-fluid mb-3 mb-lg-0" alt="">
       </div>
@@ -21,34 +53,91 @@
 </section>
 
 <!-- Services Section -->
-<section id="services" class="featured-services section">
+<section id="services" class="services section">
+  <!-- Section Title -->
+  <div class="container section-title" data-aos="fade-up">
+    <span>AI SOLUTIONS PORTFOLIO</span>
+    <h2>AI SOLUTIONS PORTFOLIO</h2>
+    <p>Comprehensive AI-powered tools designed to transform your business operations</p>
+  </div>
+
   <div class="container">
     <div class="row gy-4">
-      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="100">
-        <div class="icon flex-shrink-0"><i class="fa-solid fa-palette"></i></div>
-        <div>
-          <h4 class="title">ColorSense</h4>
-          <p class="description">AI-powered paint consultation with multi-image analysis and personalized recommendations.</p>
-          <a href="{% url 'index' %}" class="readmore stretched-link"><span>Launch App</span><i class="bi bi-arrow-right"></i></a>
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-1.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3><a href="{% url 'colorsense_app' %}">COLORSENSE PRO</a></h3>
+          <p>AI-powered paint consultation with multi-image analysis, color matching, and personalized recommendations for professional results.</p>
         </div>
       </div>
-      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="200">
-        <div class="icon flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
-        <div>
-          <h4 class="title">Groq AI</h4>
-          <p class="description">Lightning-fast AI responses with Llama models for chat and vision capabilities.</p>
-          <a href="{% url 'groq_demo' %}" class="readmore stretched-link"><span>Try Demo</span><i class="bi bi-arrow-right"></i></a>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-2.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3><a href="{% url 'groq_demo' %}">GROQ LIGHTNING AI</a></h3>
+          <p>Ultra-fast AI responses with Groq's cutting-edge hardware acceleration and Llama model integration for instant processing.</p>
         </div>
       </div>
-      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="300">
-        <div class="icon flex-shrink-0"><i class="fa-solid fa-brush"></i></div>
-        <div>
-          <h4 class="title">Interactive Colorizer</h4>
-          <p class="description">Click-to-color images with advanced segmentation technology.</p>
-          <a href="{% url 'colorizer_demo' %}" class="readmore stretched-link"><span>Start Coloring</span><i class="bi bi-arrow-right"></i></a>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-3.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3><a href="{% url 'colorizer_demo' %}">SMART COLORIZER</a></h3>
+          <p>Advanced image segmentation and coloring with SAM technology for precise, intelligent color application and editing.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-4.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3>3D RECONSTRUCTION</h3>
+          <p>COLMAP-based room modeling from photos for immersive visualization and spatial analysis with professional accuracy.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="500">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-5.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3>VISION ANALYTICS</h3>
+          <p>Advanced computer vision solutions for image analysis, object detection, and intelligent visual processing capabilities.</p>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="600">
+        <div class="card">
+          <div class="card-img">
+            <img src="{% static 'logis/img/service-6.jpg' %}" alt="" class="img-fluid">
+          </div>
+          <h3>ENTERPRISE AI</h3>
+          <p>Custom AI implementations tailored to your specific business needs with dedicated support, training, and scalable solutions.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Initialize AOS animations
+  AOS.init({
+    duration: 600,
+    easing: 'ease-in-out',
+    once: true,
+    mirror: false
+  });
+  
+  // Initialize PureCounter
+  new PureCounter();
+</script>
 {% endblock %}

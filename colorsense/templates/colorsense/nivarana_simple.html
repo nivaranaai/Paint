@@ -1,0 +1,203 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Nivarana.ai - AI-Powered Solutions</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="{% static 'logis/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="{% static 'logis/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="{% static 'logis/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+    <!-- Logis Main CSS -->
+    <link href="{% static 'logis/css/main.css' %}" rel="stylesheet">
+    
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+        }
+        .service-card {
+            transition: transform 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+        }
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                <i class="fas fa-brain me-2"></i>Nivarana.ai
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#services">Services</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-robot me-3"></i>Nivarana.ai
+                    </h1>
+                    <p class="lead mb-4">
+                        AI-Powered Solutions for Modern Businesses
+                    </p>
+                    <p class="mb-4">
+                        Transform your operations with cutting-edge artificial intelligence. From intelligent paint consultation to advanced analytics.
+                    </p>
+                    <a href="#services" class="btn btn-light btn-lg me-3">
+                        <i class="fas fa-rocket me-2"></i>Explore Services
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="fw-bold">Our AI Services</h2>
+                    <p class="text-muted">Cutting-edge solutions powered by artificial intelligence</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <!-- ColorSense -->
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="service-icon text-primary">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h5 class="fw-bold">ColorSense</h5>
+                            <p class="text-muted">AI-powered paint consultation with multi-image analysis and personalized color recommendations.</p>
+                            <a href="{% url 'colorsense_app' %}" class="btn btn-primary">
+                                <i class="fas fa-paint-brush me-1"></i>Launch App
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Groq AI -->
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="service-icon text-success">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h5 class="fw-bold">Groq AI</h5>
+                            <p class="text-muted">Lightning-fast AI responses with Llama models for chat and vision capabilities.</p>
+                            <a href="{% url 'groq_demo' %}" class="btn btn-success">
+                                <i class="fas fa-rocket me-1"></i>Try Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Colorizer -->
+                <div class="col-md-4">
+                    <div class="card service-card h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="service-icon text-info">
+                                <i class="fas fa-brush"></i>
+                            </div>
+                            <h5 class="fw-bold">Interactive Colorizer</h5>
+                            <p class="text-muted">Click-to-color images with advanced segmentation technology.</p>
+                            <a href="{% url 'colorizer_demo' %}" class="btn btn-info">
+                                <i class="fas fa-magic me-1"></i>Start Coloring
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="fw-bold">About Nivarana.ai</h2>
+                    <p class="lead">Pioneering the future of AI-powered business solutions.</p>
+                    <p>We combine cutting-edge machine learning with intuitive interfaces to deliver transformative experiences for modern businesses.</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Advanced AI Models</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Scalable Solutions</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Innovation Focus</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6">
+                    <img src="{% static 'logis/img/hero-img.svg' %}" class="img-fluid" alt="AI Solutions">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-12">
+                    <h2 class="fw-bold">Get Started Today</h2>
+                    <p class="lead">Ready to transform your business with AI?</p>
+                    <a href="{% url 'colorsense_app' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket me-2"></i>Start with ColorSense
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Nivarana.ai</h5>
+                    <p>AI-Powered Solutions for Modern Businesses</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 Nivarana.ai. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="{% static 'logis/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+</body>
+</html>
