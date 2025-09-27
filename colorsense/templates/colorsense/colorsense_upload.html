@@ -1,0 +1,202 @@
+{% extends 'colorsense/base_nivarana.html' %}
+{% load static %}
+
+{% block title %}ColorSense - Upload & Preferences{% endblock %}
+
+{% block content %}
+<div class="page-title dark-background" style="background-image: url({% static 'logis/img/page-title-bg.jpg' %}); padding: 120px 0 60px 0;">
+  <div class="container position-relative">
+    <h1>ColorSense</h1>
+    <p>AI-Powered Paint Consultation with Image Analysis</p>
+  </div>
+</div>
+
+<section class="service-details section">
+  <div class="container">
+    <!-- Common Preferences -->
+    <div class="row mb-5">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Common Preferences</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <label for="weather" class="form-label">Weather</label>
+                <select id="weather" class="form-select">
+                  <option value="">Select Weather</option>
+                  <option value="sunny">Sunny</option>
+                  <option value="cloudy">Cloudy</option>
+                  <option value="rainy">Rainy</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="locality" class="form-label">Locality</label>
+                <select id="locality" class="form-select">
+                  <option value="">Select Locality</option>
+                  <option value="urban">Urban</option>
+                  <option value="suburban">Suburban</option>
+                  <option value="rural">Rural</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label for="location" class="form-label">Location</label>
+                <input type="text" id="location" class="form-control" placeholder="Enter location">
+              </div>
+              <div class="col-md-3">
+                <label for="budget" class="form-label">Budget</label>
+                <select id="budget" class="form-select">
+                  <option value="">Select Budget</option>
+                  <option value="low">Low ($100-500)</option>
+                  <option value="medium">Medium ($500-1500)</option>
+                  <option value="high">High ($1500+)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Upload -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Room Images (Up to 10)</h5>
+          </div>
+          <div class="card-body">
+            <input type="file" id="imageUpload" class="form-control" accept="image/*" multiple>
+            <div id="imagePreviewContainer" class="row g-4 mt-3"></div>
+            <div class="text-center mt-4" id="submitSection" style="display: none;">
+              <button class="btn btn-primary btn-lg" onclick="submitAnalysis()">
+                <i class="bi bi-magic me-2"></i>Get AI Paint Recommendations
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="row mt-5" id="resultsSection" style="display: none;">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-palette me-2"></i>AI Recommendations</h5>
+          </div>
+          <div class="card-body">
+            <div id="analysisResults"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let uploadedImages = [];
+
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+    const files = Array.from(e.target.files).slice(0, 10);
+    uploadedImages = files;
+    displayImagePreviews(files);
+});
+
+function displayImagePreviews(files) {
+    const container = document.getElementById('imagePreviewContainer');
+    container.innerHTML = '';
+    
+    if (files.length === 0) {
+        document.getElementById('submitSection').style.display = 'none';
+        return;
+    }
+    
+    files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageCard = createImageCard(e.target.result, index, file.name);
+            container.appendChild(imageCard);
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    document.getElementById('submitSection').style.display = 'block';
+}
+
+function createImageCard(imageSrc, index, fileName) {
+    const col = document.createElement('div');
+    col.className = 'col-lg-6 col-xl-4';
+    
+    col.innerHTML = `
+        <div class="card">
+            <img src="${imageSrc}" class="card-img-top" style="height: 200px; object-fit: cover;">
+            <div class="card-body">
+                <h6>${fileName}</h6>
+                <div class="mb-2">
+                    <label class="form-label">Emotion</label>
+                    <select class="form-select" id="emotion_${index}">
+                        <option value="">Select Emotion</option>
+                        <option value="calm">Calm & Peaceful</option>
+                        <option value="energetic">Energetic & Vibrant</option>
+                        <option value="cozy">Cozy & Warm</option>
+                        <option value="elegant">Elegant & Sophisticated</option>
+                        <option value="fresh">Fresh & Clean</option>
+                    </select>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">Direction</label>
+                        <select class="form-select" id="direction_${index}">
+                            <option value="">Direction</option>
+                            <option value="north">North</option>
+                            <option value="south">South</option>
+                            <option value="east">East</option>
+                            <option value="west">West</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Room Type</label>
+                        <select class="form-select" id="roomtype_${index}">
+                            <option value="">Room</option>
+                            <option value="living">Living Room</option>
+                            <option value="dining">Dining Room</option>
+                            <option value="kitchen">Kitchen</option>
+                            <option value="bedroom">Bedroom</option>
+                            <option value="bathroom">Bathroom</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+async function submitAnalysis() {
+    const resultsSection = document.getElementById('resultsSection');
+    const resultsContainer = document.getElementById('analysisResults');
+    resultsSection.style.display = 'block';
+    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>Analyzing images...</div>';
+    
+    // Mock analysis for demo
+    setTimeout(() => {
+        resultsContainer.innerHTML = `
+            <div class="alert alert-success">
+                <h6>AI Analysis Complete!</h6>
+                <p>Based on your ${uploadedImages.length} images and preferences, here are personalized color recommendations:</p>
+                <div class="d-flex gap-2 mt-3">
+                    <div style="width: 50px; height: 50px; background: #B8D4E3; border-radius: 8px;" title="Soft Blue"></div>
+                    <div style="width: 50px; height: 50px; background: #9CAF88; border-radius: 8px;" title="Sage Green"></div>
+                    <div style="width: 50px; height: 50px; background: #F7F3E9; border-radius: 8px;" title="Warm White"></div>
+                </div>
+            </div>
+        `;
+    }, 2000);
+}
+</script>
+{% endblock %}

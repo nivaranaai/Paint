@@ -16,8 +16,20 @@ import json
 
 @ensure_csrf_cookie
 def index(request):
-    """Render the chat UI."""
+    """ColorSense upload page with Nivarana styling."""
+    return render(request, "colorsense/colorsense_upload.html")
+
+def nivarana_index(request):
+    """Nivarana.ai landing page."""
+    return render(request, "colorsense/nivarana_index.html")
+
+def index_original(request):
+    """Original chat UI."""
     return render(request, "colorsense/index.html")
+
+def test_static(request):
+    """Test static files."""
+    return render(request, "colorsense/test_static.html")
 
 @require_POST
 def agent_api(request):
