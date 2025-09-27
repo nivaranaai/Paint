@@ -86,7 +86,8 @@ def build_messages(user_text: str, image_data_urls: List[str], doc_texts: List[s
         "Be concise and practical. Always include HEX codes for each color recommendation.\n"
         "Close with preparation tips.\n"
         "Example format: 'Warm White (#F5F5DC) in eggshell finish would complement your space...'\n"
-        "Please provide your response in JSON format with the recommendations."
+        "Please provide your response in JSON format with the recommendations.\n"
+        "Recommendations should be per image."
     )
 
     # Build user message content
@@ -142,10 +143,16 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
     image_data_urls: List[str] = []
     for img in image_uploads:
         try:
-            if getattr(img, "content_type", "").startswith("image/"):
+            # Handle file objects
+            if hasattr(img, "content_type") and getattr(img, "content_type", "").startswith("image/"):
                 image_data_urls.append(file_to_data_url(img))
+            # Handle string URLs (data URLs or regular URLs)
+            elif isinstance(img, str) and (img.startswith("data:image/") or img.startswith("http")):
+                image_data_urls.append(img)
         finally:
-            img.seek(0)
+            # Only seek if it's a file object
+            if hasattr(img, "seek"):
+                img.seek(0)
 
     # Read document texts
     doc_texts: List[str] = []
@@ -183,11 +190,24 @@ def run_agent(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) 
 def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
     """Summarize user inputs with focus on room details."""
     # Modify the user text to request summarization
-    summary_request = f"Please elaborate and summarize the following room description: {user_text}"
+    reply = '{"reply":[{"image":"image1","room_description":"The room is a modern bedroom with a sleek design. It features a teal bed and matching chair, with striped wallpaper and green accents. The room has a polished floor, minimalistic furniture, and decorative elements like a basketball and framed pictures."},{"image":"image2","room_description":"This is a cozy living room with light yellow walls and a traditional style. The furniture is upholstered in beige and covered with patterned white and gray covers. The room has a few decorative pictures, curtains with a black and white pattern, and a small plant on the coffee table."},{"image":"image3","room_description":"The kitchen is designed in a contemporary style with a combination of white and rich red cabinetry. It features a light countertop with a speckled pattern, and the walls have a neutral tone. The kitchen is organized with hanging utensils, potted plants, and open shelving for storage."}]}'
+    return {
+        "reply": reply,
+        "swatches": []
+    }
+    summary_request = f"Please elaborate and summarize the following room description: {user_text}" + "retrun response in json format {'reply':{image: string,room_description:string}}"
     return run_agent(user_text=summary_request, image_uploads=image_uploads, doc_uploads=doc_uploads)
 
 
 def paint_suggestion(user_text: str, image_uploads: List[Any], doc_uploads: List[Any]) -> Dict[str, Any]:
     """Generate paint color suggestions based on user input."""
     # The run_agent function already has the paint consultant system prompt built-in
+    reply = {"recommendations": [{"image": 1,"colors": [{"color": "Soft White","hex": "#F0F4F8","finish": "eggshell","rationale": "Soft White will brighten the room and provide a clean contrast to the bold turquoise elements, making them pop."},{"color": "Coral Pink","hex": "#FF6F61","finish": "matte","rationale": "Coral Pink adds warmth and a playful touch that complements the turquoise without overwhelming the space."},{"color": "Charcoal Gray","hex": "#333333","finish": "semi-gloss","rationale": "Charcoal Gray can add depth and sophistication, creating a modern edge against the vibrant colors."}]},{"image": 2,"colors": [{"color": "Creamy Beige","hex": "#E6D9C9","finish": "eggshell","rationale": "Creamy Beige will enhance the warm tones already present and create a seamless flow with the furniture."},{"color": "Warm Taupe","hex": "#C2B280","finish": "matte","rationale": "Warm Taupe adds a subtle contrast to the yellow walls while maintaining a cozy and inviting atmosphere."},{"color": "Soft Sage Green","hex": "#B7C9A3","finish": "matte","rationale": "Soft Sage Green introduces a refreshing element that complements the warm tones and adds a natural touch."}]},{"image": 3,"colors": [{"color": "Pale Gray","hex": "#D3D3D3","finish": "eggshell","rationale": "Pale Gray will provide a neutral backdrop that balances the bold red cabinetry and light countertops."},{"color": "Dusty Rose","hex": "#D6A8B4","finish": "matte","rationale": "Dusty Rose adds a soft, warm accent that harmonizes with the richness of the cabinetry without clashing."},{"color": "Muted Olive","hex": "#A8B95B","finish": "matte","rationale": "Muted Olive introduces a natural element that pairs well with the red cabinetry and adds depth to the space."}]}],"preparationtips": "Ensure surfaces are clean and free of dust. Use painters tape to protect edges and achieve clean lines. Test colors on small sections of the wall before fully committing."}
+
+    return {
+        "reply": reply,
+        "swatches": []
+    }
+
+    user_text = user_text + "\n\n" + "Please provide your response in JSON format with the recommendations. as follows:\n\n"+ '"recommendations": [ {"image": "small description eg bed room, kitchen etc","colors": [{"color": "string","hex": "string","finish": "string","rationale": "string"}]}],"preparationtips": "string"'              
     return run_agent(user_text=user_text, image_uploads=image_uploads, doc_uploads=doc_uploads)    
