@@ -1,0 +1,54 @@
+{% extends 'colorsense/base_nivarana.html' %}
+{% load static %}
+
+{% block title %}Nivarana.ai - AI-Powered Solutions Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section id="hero" class="hero section dark-background">
+  <img src="{% static 'logis/img/world-dotted-map.png' %}" alt="" class="hero-bg" data-aos="fade-in">
+  <div class="container">
+    <div class="row gy-4 d-flex justify-content-between">
+      <div class="col-lg-6 order-2 order-lg-1 d-flex flex-column justify-content-center">
+        <h2 data-aos="fade-up">AI-Powered Solutions for Modern Businesses</h2>
+        <p data-aos="fade-up" data-aos-delay="100">Transform your operations with cutting-edge artificial intelligence. From intelligent paint consultation to advanced analytics.</p>
+      </div>
+      <div class="col-lg-5 order-1 order-lg-2 hero-img" data-aos="zoom-out">
+        <img src="{% static 'logis/img/hero-img.svg' %}" class="img-fluid mb-3 mb-lg-0" alt="">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services Section -->
+<section id="services" class="featured-services section">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="100">
+        <div class="icon flex-shrink-0"><i class="fa-solid fa-palette"></i></div>
+        <div>
+          <h4 class="title">ColorSense</h4>
+          <p class="description">AI-powered paint consultation with multi-image analysis and personalized recommendations.</p>
+          <a href="{% url 'index' %}" class="readmore stretched-link"><span>Launch App</span><i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="200">
+        <div class="icon flex-shrink-0"><i class="fa-solid fa-robot"></i></div>
+        <div>
+          <h4 class="title">Groq AI</h4>
+          <p class="description">Lightning-fast AI responses with Llama models for chat and vision capabilities.</p>
+          <a href="{% url 'groq_demo' %}" class="readmore stretched-link"><span>Try Demo</span><i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+      <div class="col-lg-4 col-md-6 service-item d-flex" data-aos="fade-up" data-aos-delay="300">
+        <div class="icon flex-shrink-0"><i class="fa-solid fa-brush"></i></div>
+        <div>
+          <h4 class="title">Interactive Colorizer</h4>
+          <p class="description">Click-to-color images with advanced segmentation technology.</p>
+          <a href="{% url 'colorizer_demo' %}" class="readmore stretched-link"><span>Start Coloring</span><i class="bi bi-arrow-right"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
