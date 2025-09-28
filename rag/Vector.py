@@ -135,10 +135,18 @@ if __name__ == "__main__":
         if pdf_file.lower().endswith(".pdf"):
             upsert_pdf_to_pinecone(os.path.join(pdf_folder, pdf_file), differentiators)
     print("PDFs processed and upserted to Pinecone vector DB.")
-    question = "What are the best paint colors for a house in a sunny climate?"
-    results = retrieve_relevant_chunks(question, differentiators, top_k=3)
-    for idx, res in enumerate(results, 1):
-        print(f"Result {idx}:")
-        print(f"Score: {res['score']}")
-        print(f"Source: {res['source']} (Chunk {res['chunk_id']})")
-        print(f"Text: {res['text']}\n{'-'*40}")
+
+    while True:
+        question = input("Enter your paint-related question (or type 'exit' to quit): ")
+        if question.strip().lower() == "exit":
+            print("Exiting.")
+            break
+        results = retrieve_relevant_chunks(question, differentiators, top_k=3)
+        if not results:
+            print("No relevant information found.\n" + "-"*40)
+        else:
+            for idx, res in enumerate(results, 1):
+                print(f"Result {idx}:")
+                print(f"Score: {res['score']}")
+                print(f"Source: {res['source']} (Chunk {res['chunk_id']})")
+                print(f"Text: {res['text']}\n{'-'*40}")
