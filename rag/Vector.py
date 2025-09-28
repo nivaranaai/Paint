@@ -1,11 +1,13 @@
 import os
 import pinecone
-import PyPDF2
+from langchain.document_loaders import PyPDFLoader
 import requests
+import json
 from sentence_transformers import SentenceTransformer
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Gemini API setup
-GEMINI_API_KEY = "AIzaSyBoaHFZHWCJG4xMkVzfKTxqGZ_ybXRKH8A"
+GEMINI_API_KEY = ""
 GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=" + GEMINI_API_KEY
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -16,7 +18,7 @@ def get_gemini_embedding(text):
     return embedding
 
 # Initialize Pinecone (new style)
-pc = pinecone.Pinecone(api_key="pcsk_cg1dn_Qx2V8L2voCnGvGMBHKVXD8nAFUEPxpJVzuh1uPUH7jXL4r6jNpNkX2NCXsAAMmH")
+pc = pinecone.Pinecone(api_key="")
 index_name = "house-color-prediction-demo1"
 if index_name not in [idx.name for idx in pc.list_indexes()]:
     pc.create_index(
@@ -37,16 +39,22 @@ Architectural Style, Geographic Location and Climate, Natural Light Exposure,
 User's Personal Style and Psychology, HOA and Neighborhood Guidelines
 """
 
-def extract_text_from_pdf(pdf_path):
-    text = ""
-    print("pdf_path",pdf_path)
-    with open(pdf_path, "rb") as file:
-        reader = PyPDF2.PdfReader(file)
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
-    return text
+def load_and_split_documents(file_path, chunk_size=1000, chunk_overlap=200):
+    """
+    Loads a PDF document and splits it into chunks.
+    """
+    print("Loading and splitting document...")
+    loader = PyPDFLoader(file_path)
+    documents = loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        length_function=len,
+        is_separator_regex=False,
+    )
+    chunks = text_splitter.split_documents(documents)
+    print(f"Document split into {len(chunks)} chunks.")
+    return chunks
 
 def chunk_text(text, chunk_size=500):
     words = text.split()
@@ -65,7 +73,7 @@ def query_pinecone(question, differentiators, top_k=3):
         list: List of matching documents with scores and metadata
     """
     # Combine differentiators with the question
-    full_query = differentiators + "\n" + question
+    full_query = question
     
     # Get embedding for the query
     query_embedding = get_gemini_embedding(full_query)
@@ -87,23 +95,32 @@ def query_pinecone(question, differentiators, top_k=3):
             'source': match.metadata.get('pdf_path', 'unknown'),
             'chunk_id': match.metadata.get('chunk_id', -1)
         })
-    
+    print(f"Pinecone query completed. Found {len(matches)} matches")
     return matches
 
 def upsert_pdf_to_pinecone(pdf_path, differentiators):
-    text = extract_text_from_pdf(pdf_path)
-    chunks = chunk_text(text)
-    print("chunks",chunks)
+    chunks = load_and_split_documents(pdf_path, chunk_size=500, chunk_overlap=50)
+    print(f"Found {len(chunks)} chunks")
+    
+    vectors = []
     for i, chunk in enumerate(chunks):
-        context = differentiators + "\n" + chunk
-        embedding = get_gemini_embedding(context)
-        meta = {
-            "pdf_path": pdf_path,
-            "chunk_id": i,
-            "differentiators": differentiators
-        }
-        print("meta",meta)
-        index.upsert([(f"{os.path.basename(pdf_path)}_{i}", embedding, meta)])
+        if not chunk.page_content.strip():
+            continue
+            
+        embedding = get_gemini_embedding(chunk.page_content.strip())
+        vectors.append({
+            "id": f"{os.path.basename(pdf_path)}_{i}",
+            "values": embedding,
+            "metadata": {
+                "text": chunk.page_content.strip(),
+                "pdf_path": os.path.basename(pdf_path),
+                "chunk_id": i
+            }
+        })
+    
+    if vectors:
+        result = index.upsert(vectors=vectors)
+        print(f"✅ Stored {result['upserted_count']} chunks from {os.path.basename(pdf_path)}")
 
 def retrieve_relevant_chunks(question, differentiators, top_k=3):
     """
@@ -128,6 +145,39 @@ def retrieve_relevant_chunks(question, differentiators, top_k=3):
         })
     return results
 
+def generate_answer_with_gemini(query, context, model_name="gemini-2.5-flash-preview-05-20"):
+    import json
+    import time
+    
+    GEMINI_API_KEY = ""
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": f"Context: {context}\n\nQuestion: {query}"}]
+            }
+        ]
+    }
+
+    headers = {"Content-Type": "application/json"}
+
+    for attempt in range(3):
+        try:
+            response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            
+            result = response.json()
+            answer = result['candidates'][0]['content']['parts'][0]['text']
+            return answer
+
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt + 1} failed: {e}")
+            if attempt < 2:
+                time.sleep(2 ** attempt)
+            else:
+                return f"API unavailable. Context summary: {str(context)[:200]}..."
+
 # Example usage:
 if __name__ == "__main__":
     pdf_folder = "C:\\Users\\HP\\Desktop\\Delete"
@@ -136,17 +186,8 @@ if __name__ == "__main__":
             upsert_pdf_to_pinecone(os.path.join(pdf_folder, pdf_file), differentiators)
     print("PDFs processed and upserted to Pinecone vector DB.")
 
-    while True:
-        question = input("Enter your paint-related question (or type 'exit' to quit): ")
-        if question.strip().lower() == "exit":
-            print("Exiting.")
-            break
-        results = retrieve_relevant_chunks(question, differentiators, top_k=3)
-        if not results:
-            print("No relevant information found.\n" + "-"*40)
-        else:
-            for idx, res in enumerate(results, 1):
-                print(f"Result {idx}:")
-                print(f"Score: {res['score']}")
-                print(f"Source: {res['source']} (Chunk {res['chunk_id']})")
-                print(f"Text: {res['text']}\n{'-'*40}")
+    question = input("Enter your paint-related question (or type 'exit' to quit): ")
+    user_query = "Summarise the document."
+    context = retrieve_relevant_chunks(question, differentiators, top_k=3)
+    final_answer = generate_answer_with_gemini(user_query, context)
+    print(final_answer)
