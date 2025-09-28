@@ -496,55 +496,78 @@ window.confirmSuggetion = function(description) {
     // Add creative analysis to each image card with animation
     const files = Array.from(description.images || []);
     files.forEach(function(item, index) {
-        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card`);
+        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .image-card`);
         if (imageCard && parsedreply.reply[index] && parsedreply.reply[index].room_description) {
-            // Add glow effect to the card
-            imageCard.style.transition = 'all 0.5s ease';
-            imageCard.style.boxShadow = '0 0 20px rgba(0, 123, 255, 0.5)';
-            imageCard.style.transform = 'scale(1.02)';
+            // Add magical glow effect to the card
+            imageCard.style.transition = 'all 0.8s ease';
+            imageCard.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.6), 0 0 60px rgba(118, 75, 162, 0.3)';
+            imageCard.style.transform = 'translateY(-5px) scale(1.02)';
             
             setTimeout(() => {
-                const cardBody = imageCard.querySelector('.card-body');
+                // Find the card body (padding section)
+                const cardBody = imageCard.querySelector('div[style*="padding: 25px"]');
+                
+                // Create magical AI analysis section
                 const analysisDiv = document.createElement('div');
-                analysisDiv.className = 'mt-3 p-3 position-relative overflow-hidden';
+                analysisDiv.className = 'ai-analysis-section';
                 analysisDiv.style.cssText = `
+                    margin-top: 20px;
+                    padding: 25px;
                     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border-radius: 15px;
+                    border-radius: 20px;
                     color: white;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-                    animation: slideInUp 0.6s ease-out;
+                    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+                    animation: magicalAppear 1s ease-out;
+                    position: relative;
+                    overflow: hidden;
                 `;
                 
                 analysisDiv.innerHTML = `
-                    <div class="d-flex align-items-start">
-                        <div class="me-3">
-                            <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
-                                🤖
-                            </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; animation: float 3s ease-in-out infinite;">
+                            🤖
                         </div>
-                        <div class="flex-grow-1">
-                            <h6 class="mb-2" style="color: #fff; font-weight: 600;">
-                                <i class="bi bi-sparkles me-2"></i>AI Vision Analysis
+                        <div>
+                            <h6 style="margin: 0; font-weight: 700; font-size: 16px; color: white;">
+                                ✨ AI Vision Analysis
                             </h6>
-                            <p class="mb-0" style="line-height: 1.5; font-size: 14px; opacity: 0.95;">
-                                ${parsedreply.reply[index].room_description}
-                            </p>
+                            <p style="margin: 0; font-size: 12px; opacity: 0.8;">Powered by Advanced Computer Vision</p>
                         </div>
                     </div>
-                    <div class="position-absolute" style="top: -10px; right: -10px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.3;"></div>
-                    <div class="position-absolute" style="bottom: -5px; left: -5px; width: 20px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.2;"></div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; border-left: 4px solid rgba(255,255,255,0.3);">
+                        <p style="margin: 0; line-height: 1.6; font-size: 14px; color: rgba(255,255,255,0.95);">
+                            ${parsedreply.reply[index].room_description}
+                        </p>
+                    </div>
+                    
+                    <!-- Decorative elements -->
+                    <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite;"></div>
+                    <div style="position: absolute; bottom: -10px; left: -10px; width: 30px; height: 30px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite 1s;"></div>
+                    
+                    <!-- Sparkle effects -->
+                    <div style="position: absolute; top: 20%; left: 15%; font-size: 12px; animation: sparkle 4s infinite; color: rgba(255,255,255,0.6);">✨</div>
+                    <div style="position: absolute; top: 60%; right: 20%; font-size: 10px; animation: sparkle 4s infinite 2s; color: rgba(255,255,255,0.6);">⭐</div>
                 `;
                 
-                cardBody.appendChild(analysisDiv);
+                // Insert before the existing form elements
+                const firstFormElement = cardBody.querySelector('.mb-3');
+                cardBody.insertBefore(analysisDiv, firstFormElement);
                 
-            }, index * 300); // Stagger the animations
+                // Reset card styling after animation
+                setTimeout(() => {
+                    imageCard.style.boxShadow = '0 15px 35px rgba(0,0,0,0.1)';
+                    imageCard.style.transform = 'translateY(0) scale(1)';
+                }, 2000);
+                
+            }, index * 400); // Stagger the animations
         }
     });
     
     // Replace the main button after all analyses are shown
     setTimeout(() => {
         replaceMainButton();
-    }, files.length * 300 + 500);
+    }, files.length * 400 + 800);
 };
 
 window.sendConfirmation = async function(confirmed, description = window.uploadAnalysisData) {
@@ -1143,6 +1166,24 @@ async function cleanupColorizerSession(sessionId) {
     100% {
         opacity: 1;
         transform: scale(1) rotateY(0deg);
+    }
+}
+
+@keyframes magicalAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.8);
+        filter: blur(10px);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-5px) scale(1.05);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
     }
 }
 
