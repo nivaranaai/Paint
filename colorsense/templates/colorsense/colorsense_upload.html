@@ -70,8 +70,8 @@
             <input type="file" id="imageUpload" class="form-control" accept="image/*" multiple>
             <div id="imagePreviewContainer" class="row g-4 mt-3"></div>
             <div class="text-center mt-4" id="submitSection" style="display: none;">
-              <button class="btn btn-primary btn-lg" onclick="submitAnalysis()">
-                <i class="bi bi-magic me-2"></i>Get AI Paint Recommendations
+              <button class="btn btn-lg" onclick="submitAnalysis()" id="submitBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; border-radius: 25px; padding: 15px 30px; font-weight: 600; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                <i class="bi bi-search me-2"></i>🏠 Analyse Your Home
               </button>
             </div>
           </div>
@@ -79,21 +79,21 @@
       </div>
     </div>
 
-    <!-- Results -->
-    <div class="row mt-5" id="resultsSection" style="display: none;">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-palette me-2"></i>AI Recommendations</h5>
-          </div>
-          <div class="card-body">
-            <div id="analysisResults"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+
   </div>
 </section>
+
+<!-- Loader Modal -->
+<div id="loaderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000;">
+  <div style="background:white; padding:40px; width:400px; margin:20% auto; border-radius:15px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+    <div id="loaderContent">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <h5 id="loaderText" class="fw-bold text-primary">Invoking ColorSense Agent....</h5>
+    </div>
+  </div>
+</div>
 
 <!-- Confirmation Modal -->
 <div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
@@ -220,10 +220,8 @@ function buildMessageFromPreferences() {
 }
 
 async function submitAnalysis() {
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsSection.style.display = 'block';
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>AI analyzing your room...</div>';
+    // Start centered loader with sequential events
+    showLoader();
     
     // Create fake elements for app.js compatibility
     const fakeMessageEl = { value: buildMessageFromPreferences() };
@@ -250,16 +248,19 @@ async function submitAnalysis() {
         });
         
         const data = await resp.json();
+        hideLoader();
+        
         if (data.ok) {
             // Store data and show confirmation using app.js style
             window.uploadAnalysisData = data;
             window.uploadAnalysisData.images = images;
             confirmSuggetion(window.uploadAnalysisData);
         } else {
-            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            alert(`Error: ${data.error}`);
         }
     } catch (err) {
-        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+        hideLoader();
+        alert(`Network error: ${err}`);
     }
 }
 
@@ -267,6 +268,67 @@ function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+function showLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
+    
+    const events = [
+        { text: "Invoking ColorSense Agent....", delay: 0 },
+        { text: "ColorSense Agent Invoked...", delay: 1500 },
+        { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
+    
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
+}
+
+function hideLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    loaderModal.style.display = 'none';
+}
+
+function showPaintRecommendationLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
+    
+    const events = [
+        { text: "Generating Paint Recommendations....", delay: 0 },
+        { text: "Analyzing Color Palettes...", delay: 1000 },
+        { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
 }
 
 // Override app.js functions for upload interface
@@ -278,33 +340,62 @@ window.confirmSuggetion = function(description) {
         parsedreply = { reply: [] };
     }
     
-    // Add analysis to each image card
+    // Add creative analysis to each image card with animation
     const files = Array.from(description.images || []);
     files.forEach(function(item, index) {
-        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card-body`);
+        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card`);
         if (imageCard && parsedreply.reply[index] && parsedreply.reply[index].room_description) {
-            const analysisDiv = document.createElement('div');
-            analysisDiv.className = 'mt-3 p-2 bg-light border rounded';
-            analysisDiv.innerHTML = `<strong class="text-primary"><i class="bi bi-eye me-1"></i>AI Analysis:</strong><br><small>${parsedreply.reply[index].room_description}</small>`;
-            imageCard.appendChild(analysisDiv);
+            // Add glow effect to the card
+            imageCard.style.transition = 'all 0.5s ease';
+            imageCard.style.boxShadow = '0 0 20px rgba(0, 123, 255, 0.5)';
+            imageCard.style.transform = 'scale(1.02)';
+            
+            setTimeout(() => {
+                const cardBody = imageCard.querySelector('.card-body');
+                const analysisDiv = document.createElement('div');
+                analysisDiv.className = 'mt-3 p-3 position-relative overflow-hidden';
+                analysisDiv.style.cssText = `
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 15px;
+                    color: white;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    animation: slideInUp 0.6s ease-out;
+                `;
+                
+                analysisDiv.innerHTML = `
+                    <div class="d-flex align-items-start">
+                        <div class="me-3">
+                            <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                                🤖
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-2" style="color: #fff; font-weight: 600;">
+                                <i class="bi bi-sparkles me-2"></i>AI Vision Analysis
+                            </h6>
+                            <p class="mb-0" style="line-height: 1.5; font-size: 14px; opacity: 0.95;">
+                                ${parsedreply.reply[index].room_description}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="position-absolute" style="top: -10px; right: -10px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.3;"></div>
+                    <div class="position-absolute" style="bottom: -5px; left: -5px; width: 20px; height: 20px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.2;"></div>
+                `;
+                
+                cardBody.appendChild(analysisDiv);
+                
+            }, index * 300); // Stagger the animations
         }
     });
     
-    // Show confirmation in results section
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsContainer.innerHTML = `
-        <div class="alert alert-info">
-            <h6><i class="bi bi-check-circle me-2"></i>Room Analysis Complete</h6>
-            <p>AI analysis has been added to each image card. Proceed to get paint recommendations?</p>
-            <button class="btn btn-success me-2" onclick="sendConfirmation(true, window.uploadAnalysisData)">Get Paint Recommendations</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('resultsSection').style.display='none'">Cancel</button>
-        </div>
-    `;
+    // Replace the main button after all analyses are shown
+    setTimeout(() => {
+        replaceMainButton();
+    }, files.length * 300 + 500);
 };
 
 window.sendConfirmation = async function(confirmed, description = window.uploadAnalysisData) {
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-palette me-2"></i>Generating paint recommendations...</div>';
+    showPaintRecommendationLoader();
     
     const form = new FormData();
     form.append('confirm', confirmed);
@@ -322,94 +413,239 @@ window.sendConfirmation = async function(confirmed, description = window.uploadA
         });
         
         const data = await resp.json();
+        hideLoader();
+        
         if (data.ok) {
             displayUploadRecommendations(data.reply);
         } else {
-            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            alert(`Error: ${data.error}`);
         }
     } catch (err) {
-        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+        hideLoader();
+        alert(`Network error: ${err}`);
     }
 };
 
 function displayUploadRecommendations(replyData) {
-    const resultsContainer = document.getElementById('analysisResults');
+    // Hide the submit section after getting recommendations
+    const submitSection = document.getElementById('submitSection');
+    if (submitSection) {
+        submitSection.style.animation = 'fadeOut 0.5s ease-out';
+        setTimeout(() => {
+            submitSection.style.display = 'none';
+        }, 500);
+    }
     
     // Parse the JSON string in reply
     const parsedReply = JSON.parse(replyData.reply);
     
-    // Add recommendations to each image card
+    // Add recommendations to each image card with creative styling
     if (parsedReply.recommendations) {
         parsedReply.recommendations.forEach((recommendation, index) => {
             const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card-body`);
             if (imageCard) {
-                // Add recommendations section to the image card
-                const recSection = document.createElement('div');
-                recSection.className = 'mt-3 p-2 border-top';
-                recSection.innerHTML = '<h6 class="text-success"><i class="bi bi-palette me-1"></i>Paint Recommendations</h6>';
+                // Remove the confirmation button
+                const confirmDiv = imageCard.querySelector('.text-center');
+                if (confirmDiv) confirmDiv.remove();
                 
+                // Add recommendations section with creative styling
+                const recSection = document.createElement('div');
+                recSection.className = 'mt-3 p-3 position-relative';
+                recSection.style.cssText = `
+                    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+                    border-radius: 15px;
+                    color: white;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                    animation: slideInUp 0.6s ease-out;
+                `;
+                
+                let colorsHtml = '';
                 recommendation.colors.forEach(color => {
-                    const colorDiv = document.createElement('div');
-                    colorDiv.className = 'mb-2 p-2 border rounded';
-                    colorDiv.innerHTML = `
-                        <div class="d-flex align-items-start">
-                            <div style="width:30px;height:30px;background:${color.hex};border:1px solid #333;border-radius:4px;cursor:pointer;flex-shrink:0;" 
-                                 onclick="navigator.clipboard?.writeText('${color.hex}')" title="${color.color} - Click to copy"></div>
-                            <div class="ms-2 flex-grow-1">
-                                <small><strong>${color.color}</strong> (${color.hex}) - ${color.finish} finish</small><br>
-                                <small class="text-muted fst-italic">${color.rationale}</small>
+                    colorsHtml += `
+                        <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                            <div class="d-flex align-items-start">
+                                <div style="width:40px;height:40px;background:${color.hex};border:2px solid white;border-radius:8px;cursor:pointer;flex-shrink:0;box-shadow: 0 4px 15px rgba(0,0,0,0.2);" 
+                                     onclick="navigator.clipboard?.writeText('${color.hex}'); this.style.transform='scale(0.95)'; setTimeout(() => this.style.transform='scale(1)', 150);" 
+                                     title="${color.color} - Click to copy ${color.hex}"></div>
+                                <div class="ms-3 flex-grow-1">
+                                    <h6 class="mb-1" style="color: white; font-weight: 600;">${color.color}</h6>
+                                    <p class="mb-1" style="font-size: 12px; opacity: 0.9;"><strong>${color.hex}</strong> • ${color.finish} finish</p>
+                                    <p class="mb-0" style="font-size: 13px; opacity: 0.8; line-height: 1.4;">${color.rationale}</p>
+                                </div>
                             </div>
                         </div>
                     `;
-                    recSection.appendChild(colorDiv);
                 });
                 
+                recSection.innerHTML = `
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px;">
+                            🎨
+                        </div>
+                        <h6 class="mb-0" style="color: white; font-weight: 600;">
+                            <i class="bi bi-palette me-2"></i>Perfect Paint Matches
+                        </h6>
+                    </div>
+                    ${colorsHtml}
+                    <div class="position-absolute" style="top: -10px; right: -10px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.3;"></div>
+                `;
+                
                 imageCard.appendChild(recSection);
+                
+                // Add subtle success animation to the card
+                setTimeout(() => {
+                    imageCard.style.boxShadow = '0 0 30px rgba(17, 153, 142, 0.3)';
+                    setTimeout(() => {
+                        imageCard.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                    }, 1000);
+                }, index * 200);
+                
+                // Add preparation tips if available
+                if (parsedReply.preparationtips && index === 0) {
+                    const tipsDiv = document.createElement('div');
+                    tipsDiv.className = 'mt-3 p-3';
+                    tipsDiv.style.cssText = `
+                        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+                        border-radius: 15px;
+                        color: #8b4513;
+                        animation: slideInUp 0.8s ease-out;
+                    `;
+                    tipsDiv.innerHTML = `
+                        <div class="d-flex align-items-start">
+                            <div style="font-size: 24px; margin-right: 12px;">💡</div>
+                            <div>
+                                <h6 class="mb-2" style="font-weight: 600;">Pro Tips</h6>
+                                <p class="mb-0" style="font-size: 14px; line-height: 1.5;">${parsedReply.preparationtips}</p>
+                            </div>
+                        </div>
+                    `;
+                    imageCard.appendChild(tipsDiv);
+                }
             }
         });
     }
+}
+
+function replaceMainButton() {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitSection = document.getElementById('submitSection');
     
-    // Show success message and preparation tips in results section
-    resultsContainer.innerHTML = `
-        <div class="alert alert-success">
-            <h6><i class="bi bi-check-circle me-2"></i>Analysis Complete!</h6>
-            <p>Paint recommendations have been added to each image card above.</p>
-        </div>
-    `;
+    // Animate out the old button
+    submitBtn.style.transform = 'scale(0.8)';
+    submitBtn.style.opacity = '0';
     
-    if (parsedReply.preparationtips) {
-        const tipsDiv = document.createElement('div');
-        tipsDiv.className = 'alert alert-info';
-        tipsDiv.innerHTML = `<strong>💡 Preparation Tips:</strong><br>${parsedReply.preparationtips}`;
-        resultsContainer.appendChild(tipsDiv);
+    setTimeout(() => {
+        // Replace with creative paint recommendations button
+        submitSection.innerHTML = `
+            <div style="animation: magicAppear 1s ease-out;">
+                <div class="text-center mb-3">
+                    <div style="font-size: 48px; animation: float 2s ease-in-out infinite;">🎨</div>
+                    <h4 style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0;">
+                        Analysis Complete!
+                    </h4>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                        Your rooms have been analyzed by our AI. Ready for personalized paint recommendations?
+                    </p>
+                </div>
+                <button onclick="sendConfirmation(true, window.uploadAnalysisData)" 
+                        style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+                               border: none; color: white; border-radius: 30px; padding: 18px 40px;
+                               font-weight: 700; font-size: 16px; cursor: pointer;
+                               box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+                               transition: all 0.4s ease; position: relative; overflow: hidden;"
+                        onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 107, 107, 0.4)';" 
+                        onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(255, 107, 107, 0.3)';">
+                    <span style="position: relative; z-index: 2;">
+                        ✨ Generate My Perfect Colors ✨
+                    </span>
+                    <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; 
+                                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                                animation: shimmer 2s infinite;"></div>
+                </button>
+                <div class="mt-3">
+                    <small style="color: #888; font-style: italic;">
+                        🔮 AI-powered recommendations based on your room analysis
+                    </small>
+                </div>
+            </div>
+        `;
+    }, 300);
+}
+</script>
+
+<style>
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-function createBootstrapRecommendation(recommendation) {
-    const recDiv = document.createElement('div');
-    recDiv.className = 'card mb-3';
-    
-    let html = '<div class="card-body">';
-    if (recommendation.image) {
-        html += `<h5 class="card-title">${recommendation.image}</h5>`;
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
     }
-    
-    recommendation.colors.forEach(color => {
-        html += `
-            <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                <div style="width:50px;height:50px;background:${color.hex};border:2px solid #333;border-radius:8px;cursor:pointer;flex-shrink:0;" 
-                     onclick="navigator.clipboard?.writeText('${color.hex}')" title="Click to copy ${color.hex}"></div>
-                <div class="ms-3">
-                    <h6 class="mb-1">${color.color}</h6>
-                    <p class="mb-1"><strong>Hex:</strong> ${color.hex} | <strong>Finish:</strong> ${color.finish}</p>
-                    <small class="text-muted">${color.rationale}</small>
-                </div>
-            </div>`;
-    });
-    
-    html += '</div>';
-    recDiv.innerHTML = html;
-    return recDiv;
+    50% {
+        transform: scale(1.05);
+    }
 }
-</script>
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+@keyframes magicAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotateY(180deg);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1) rotateY(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+#submitBtn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5) !important;
+}
+</style>
 {% endblock %}

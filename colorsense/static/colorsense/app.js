@@ -225,6 +225,9 @@
     //form.append('docs', description.docs);
     const csrftoken = getCookie('csrftoken');
 
+    const paint_suggestion = appendBubble('paint_suggestion', '');
+    showPaintRecommendationLoader(paint_suggestion);
+
     try {
         const resp = await fetch('/api/agent/confirm/', {
             method: 'POST',
@@ -234,8 +237,7 @@
 
         const data = await resp.json();
         if (data.ok) {
-            alert('Confirmation sent successfully.');
-            const paint_suggestion = appendBubble('paint_suggestion', '');
+            paint_suggestion.innerHTML = '';
             console.log(data.reply);
             console.log(data.reply.reply.recommendations);
             // Parse the JSON response
@@ -306,7 +308,8 @@
     for (const f of docs) form.append('docs', f);
     //form.append('confirm', false);
     const csrftoken = getCookie('csrftoken');
-    const bubble = appendBubble('assistant', 'Thinking…');
+    const bubble = appendBubble('assistant', '');
+    showChatLoader(bubble);
 
     try {
       const resp = await fetch('/api/agent/', {
@@ -361,6 +364,54 @@
     } catch (err) {
       bubble.textContent = `Network error: ${err}`;
     }
+  }
+
+  function showChatLoader(container) {
+    const events = [
+      { text: "Invoking ColorSense Agent....", delay: 0 },
+      { text: "ColorSense Agent Invoked...", delay: 1500 },
+      { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
+  }
+
+  function showPaintRecommendationLoader(container) {
+    const events = [
+      { text: "Generating Paint Recommendations....", delay: 0 },
+      { text: "Analyzing Color Palettes...", delay: 1000 },
+      { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
   }
 
   // Event listeners
