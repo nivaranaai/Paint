@@ -1,136 +1,144 @@
-# This script demonstrates a hybrid Retrieval-Augmented Generation (RAG) pipeline
-# using a local Sentence Transformer for embeddings and the Gemini API for text generation.
-
 import os
-from dotenv import load_dotenv
+import pinecone
+import PyPDF2
 import requests
-import json
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.document_loaders import PyPDFLoader
-from langchain.vectorstores import Chroma
-from langchain.embeddings import HuggingFaceEmbeddings
+from sentence_transformers import SentenceTransformer
 
-# --- Setup and Configuration ---
-# Load environment variables from a .env file (e.g., GEMINI_API_KEY="your_api_key")
-load_dotenv()
+# Gemini API setup
+GEMINI_API_KEY = "AIzaSyBoaHFZHWCJG4xMkVzfKTxqGZ_ybXRKH8A"
+GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=" + GEMINI_API_KEY
 
-# Set your Gemini API key from the environment variable
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY not found. Please set the environment variable.")
 
-# --- Document Processing Functions ---
+def get_gemini_embedding(text):
+    embedding = model.encode(text).tolist()
+    return embedding
 
-def load_and_split_documents(file_path, chunk_size=1000, chunk_overlap=200):
-    """
-    Loads a PDF document and splits it into chunks.
-    """
-    print("Loading and splitting document...")
-    loader = PyPDFLoader(file_path)
-    documents = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        length_function=len,
-        is_separator_regex=False,
+# Initialize Pinecone (new style)
+pc = pinecone.Pinecone(api_key="pcsk_cg1dn_Qx2V8L2voCnGvGMBHKVXD8nAFUEPxpJVzuh1uPUH7jXL4r6jNpNkX2NCXsAAMmH")
+index_name = "house-color-prediction-demo1"
+if index_name not in [idx.name for idx in pc.list_indexes()]:
+    pc.create_index(
+        name=index_name,
+        dimension=384,  # all-MiniLM-L6-v2 outputs 384-dimensional vectors
+        metric="cosine",
+        spec=pinecone.ServerlessSpec(
+            cloud="aws",  # or "gcp" if using Google Cloud
+            region="us-east-1"  # match your Pinecone project region
+        )
     )
-    chunks = text_splitter.split_documents(documents)
-    print(f"Document split into {len(chunks)} chunks.")
-    return chunks
 
-def get_vector_store(chunks):
-    """
-    Creates a Chroma vector store from document chunks using a Sentence Transformer model.
-    """
-    print("Creating vector store...")
-    # Use a local Hugging Face model for embeddings
-    model_name = "sentence-transformers/all-MiniLM-L6-v2"
-    embeddings = HuggingFaceEmbeddings(model_name=model_name)
-    vector_store = Chroma.from_documents(chunks, embeddings)
-    print("Vector store created successfully.")
-    return vector_store
+index = pc.Index(index_name)
 
-def retrieve_relevant_chunks(vector_store, query, k=4):
-    """
-    Retrieves the most relevant chunks from the vector store based on a query.
-    """
-    print("Retrieving relevant document chunks...")
-    docs = vector_store.similarity_search(query, k=k)
-    context = "\n\n".join([doc.page_content for doc in docs])
-    print("Relevant chunks retrieved.")
-    return context
+# Differentiating factors as context
+differentiators = """
+Architectural Style, Geographic Location and Climate, Natural Light Exposure,
+User's Personal Style and Psychology, HOA and Neighborhood Guidelines
+"""
 
-# --- Gemini API Function for Answer Generation ---
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    print("pdf_path",pdf_path)
+    with open(pdf_path, "rb") as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+    return text
 
-def generate_answer_with_gemini(query, context, model_name="gemini-2.5-flash-preview-05-20"):
-    """
-    Generates a response using the Gemini API, grounded by the retrieved context.
-    """
-    print(f"Generating answer with Gemini model: {model_name}...")
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+def chunk_text(text, chunk_size=500):
+    words = text.split()
+    return [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
 
-    system_prompt = "You are a helpful assistant. Use the provided context to answer the user's question. If the information is not in the context, say 'I cannot answer based on the provided information.'"
+def query_pinecone(question, differentiators, top_k=3):
+    """
+    Query Pinecone for similar documents based on the input question
     
-    payload = {
-        "contents": [
-            {
-                "parts": [{"text": f"Context: {context}\n\nQuestion: {query}"}]
-            }
-        ],
-        "systemInstruction": {
-            "parts": [{"text": system_prompt}]
+    Args:
+        question (str): The question to search for
+        differentiators (str): The context/differentiators to add to the query
+        top_k (int): Number of results to return
+        
+    Returns:
+        list: List of matching documents with scores and metadata
+    """
+    # Combine differentiators with the question
+    full_query = differentiators + "\n" + question
+    
+    # Get embedding for the query
+    query_embedding = get_gemini_embedding(full_query)
+    
+    # Query Pinecone
+    results = index.query(
+        vector=query_embedding,
+        top_k=top_k,
+        include_metadata=True
+    )
+    
+    # Format results
+    matches = []
+    for match in results.matches:
+        matches.append({
+            'id': match.id,
+            'score': match.score,
+            'text': match.metadata.get('text', ''),
+            'source': match.metadata.get('pdf_path', 'unknown'),
+            'chunk_id': match.metadata.get('chunk_id', -1)
+        })
+    
+    return matches
+
+def upsert_pdf_to_pinecone(pdf_path, differentiators):
+    text = extract_text_from_pdf(pdf_path)
+    chunks = chunk_text(text)
+    print("chunks",chunks)
+    for i, chunk in enumerate(chunks):
+        context = differentiators + "\n" + chunk
+        embedding = get_gemini_embedding(context)
+        meta = {
+            "pdf_path": pdf_path,
+            "chunk_id": i,
+            "differentiators": differentiators
         }
-    }
+        print("meta",meta)
+        index.upsert([(f"{os.path.basename(pdf_path)}_{i}", embedding, meta)])
 
-    headers = {
-        "Content-Type": "application/json"
-    }
-
-    try:
-        response = requests.post(api_url, headers=headers, data=json.dumps(payload))
-        response.raise_for_status()  # Raise an exception for bad status codes
-        
-        result = response.json()
-        answer = result['candidates'][0]['content']['parts'][0]['text']
-        
-        print("Answer generated successfully.")
-        return answer
-
-    except requests.exceptions.RequestException as e:
-        print(f"API request failed: {e}")
-        return "An error occurred while communicating with the Gemini API."
-
-# --- Main RAG Pipeline Execution ---
-
-def main():
+def retrieve_relevant_chunks(question, differentiators, top_k=3):
     """
-    Main function to run the RAG pipeline.
+    Retrieves the most relevant chunks from Pinecone based on the input question.
+    
+    Args:
+        question (str): The question to search for.
+        differentiators (str): Context/differentiators to add to the query.
+        top_k (int): Number of results to return.
+        
+    Returns:
+        list: List of matching document texts.
     """
-    # Replace with the path to your document file
-    cwd = os.getcwd()
-    print("Current Working Directory:", cwd)
-    pdf_file_path = "./paint_project/Vector_DB/1.pdf" # Make sure this file exists in the same directory.
-    
-    # 1. Load and process the document
-    chunks = load_and_split_documents(pdf_file_path)
-    
-    # 2. Create the vector store
-    vector_store = get_vector_store(chunks)
-    
-    # 3. Define the user query
-    user_query = "how many words are there in the document and you need to replace the sentences on the first page to plural rathaer than singular."
-    
-    # 4. Retrieve context from the vector store
-    context = retrieve_relevant_chunks(vector_store, user_query)
-    
-    # 5. Generate the final answer using the Gemini API
-    final_answer = generate_answer_with_gemini(user_query, context)
-    
-    print("\n--- RAG Pipeline Results ---")
-    print(f"User Query: {user_query}")
-    print("\nGenerated Answer:")
-    print(final_answer)
+    matches = query_pinecone(question, differentiators, top_k=top_k)
+    results = []
+    for match in matches:
+        results.append({
+            "text": match["text"],
+            "score": match["score"],
+            "source": match["source"],
+            "chunk_id": match["chunk_id"]
+        })
+    return results
 
+# Example usage:
 if __name__ == "__main__":
-    main()
+    pdf_folder = "C:\\Users\\HP\\Desktop\\Delete"
+    for pdf_file in os.listdir(pdf_folder):
+        if pdf_file.lower().endswith(".pdf"):
+            upsert_pdf_to_pinecone(os.path.join(pdf_folder, pdf_file), differentiators)
+    print("PDFs processed and upserted to Pinecone vector DB.")
+    question = "What are the best paint colors for a house in a sunny climate?"
+    results = retrieve_relevant_chunks(question, differentiators, top_k=3)
+    for idx, res in enumerate(results, 1):
+        print(f"Result {idx}:")
+        print(f"Score: {res['score']}")
+        print(f"Source: {res['source']} (Chunk {res['chunk_id']})")
+        print(f"Text: {res['text']}\n{'-'*40}")
