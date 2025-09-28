@@ -94,9 +94,23 @@
     </div>
   </div>
 </section>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
+  <div style="background:white; padding:30px; width:90%; max-width:700px; margin:3% auto; border-radius:10px; max-height:85%; overflow-y:auto;">
+    <h3>🔍 Room Analysis Complete</h3>
+    <p>Please review the AI's analysis and confirm to receive paint recommendations:</p>
+    <div id="confirmText" style="margin:20px 0; max-height:400px; overflow-y:auto;"></div>
+    <div style="text-align:center; margin-top:20px;">
+      <button id="yesBtn" class="btn btn-success me-2">✅ Confirm & Get Paint Recommendations</button>
+      <button id="noBtn" class="btn btn-secondary">❌ Cancel</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'colorsense/app.js' %}"></script>
 <script>
 let uploadedImages = [];
 
@@ -177,26 +191,218 @@ function createImageCard(imageSrc, index, fileName) {
     return col;
 }
 
+function buildMessageFromPreferences() {
+    const weather = document.getElementById('weather').value;
+    const locality = document.getElementById('locality').value;
+    const location = document.getElementById('location').value;
+    const budget = document.getElementById('budget').value;
+    
+    let message = 'Room analysis request.';
+    if (weather) message += ` Weather: ${weather}.`;
+    if (locality) message += ` Area: ${locality}.`;
+    if (location) message += ` Location: ${location}.`;
+    if (budget) message += ` Budget: ${budget}.`;
+    
+    uploadedImages.forEach((file, index) => {
+        const emotion = document.getElementById(`emotion_${index}`)?.value;
+        const direction = document.getElementById(`direction_${index}`)?.value;
+        const roomtype = document.getElementById(`roomtype_${index}`)?.value;
+        
+        if (emotion || direction || roomtype) {
+            message += ` Image ${index + 1}:`;
+            if (emotion) message += ` ${emotion} mood,`;
+            if (direction) message += ` ${direction} facing,`;
+            if (roomtype) message += ` ${roomtype}.`;
+        }
+    });
+    
+    return message;
+}
+
 async function submitAnalysis() {
     const resultsSection = document.getElementById('resultsSection');
     const resultsContainer = document.getElementById('analysisResults');
     resultsSection.style.display = 'block';
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>Analyzing images...</div>';
+    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>AI analyzing your room...</div>';
     
-    // Mock analysis for demo
-    setTimeout(() => {
-        resultsContainer.innerHTML = `
-            <div class="alert alert-success">
-                <h6>AI Analysis Complete!</h6>
-                <p>Based on your ${uploadedImages.length} images and preferences, here are personalized color recommendations:</p>
-                <div class="d-flex gap-2 mt-3">
-                    <div style="width: 50px; height: 50px; background: #B8D4E3; border-radius: 8px;" title="Soft Blue"></div>
-                    <div style="width: 50px; height: 50px; background: #9CAF88; border-radius: 8px;" title="Sage Green"></div>
-                    <div style="width: 50px; height: 50px; background: #F7F3E9; border-radius: 8px;" title="Warm White"></div>
+    // Create fake elements for app.js compatibility
+    const fakeMessageEl = { value: buildMessageFromPreferences() };
+    const fakeImagesEl = { files: uploadedImages };
+    const fakeDocsEl = { files: [] };
+    
+    // Use app.js send function logic
+    const msg = fakeMessageEl.value.trim();
+    const images = fakeImagesEl.files;
+    const docs = fakeDocsEl.files;
+    
+    const form = new FormData();
+    form.append('message', msg);
+    for (const f of images) form.append('images', f);
+    for (const f of docs) form.append('docs', f);
+    
+    const csrftoken = getCookie('csrftoken');
+    
+    try {
+        const resp = await fetch('/api/agent/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: form,
+        });
+        
+        const data = await resp.json();
+        if (data.ok) {
+            // Store data and show confirmation using app.js style
+            window.uploadAnalysisData = data;
+            window.uploadAnalysisData.images = images;
+            confirmSuggetion(window.uploadAnalysisData);
+        } else {
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        }
+    } catch (err) {
+        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+    }
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// Override app.js functions for upload interface
+window.confirmSuggetion = function(description) {
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmText = document.getElementById('confirmText');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn = document.getElementById('noBtn');
+    
+    confirmText.innerHTML = "";
+    
+    let parsedreply;
+    try {
+        parsedreply = JSON.parse(description.reply);
+    } catch (e) {
+        parsedreply = { reply: [] };
+    }
+    
+    const files = Array.from(description.images || []);
+    files.forEach(function(item, index) {
+        const container = document.createElement('div');
+        container.className = 'mb-3 p-3 border rounded';
+        
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(item);
+        img.style.cssText = 'max-width:100%; max-height:200px; border-radius:5px; display:block; margin-bottom:10px;';
+        container.appendChild(img);
+        
+        if (parsedreply.reply[index] && parsedreply.reply[index].room_description) {
+            const desc = document.createElement('p');
+            desc.innerHTML = `<strong>AI Analysis:</strong> ${parsedreply.reply[index].room_description}`;
+            desc.style.cssText = 'margin:0; color:#555; line-height:1.4;';
+            container.appendChild(desc);
+        }
+        
+        confirmText.appendChild(container);
+    });
+    
+    confirmModal.style.display = 'block';
+    
+    yesBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        sendConfirmation(true, description);
+    };
+    
+    noBtn.onclick = () => {
+        confirmModal.style.display = 'none';
+        document.getElementById('resultsSection').style.display = 'none';
+    };
+};
+
+window.sendConfirmation = async function(confirmed, description) {
+    const resultsContainer = document.getElementById('analysisResults');
+    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-palette me-2"></i>Generating paint recommendations...</div>';
+    
+    const form = new FormData();
+    form.append('confirm', confirmed);
+    form.append('room_description', description.reply);
+    if (description.images && description.images.length > 0) {
+        form.append('images', description.images[0]);
+    }
+    const csrftoken = getCookie('csrftoken');
+    
+    try {
+        const resp = await fetch('/api/agent/confirm/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            body: form,
+        });
+        
+        const data = await resp.json();
+        if (data.ok) {
+            displayUploadRecommendations(data.reply);
+        } else {
+            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+        }
+    } catch (err) {
+        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+    }
+};
+
+function displayUploadRecommendations(replyData) {
+    const resultsContainer = document.getElementById('analysisResults');
+    resultsContainer.innerHTML = '';
+    
+    console.log('Reply data:', replyData); // Debug log
+    
+    // Parse the JSON string in reply
+    const parsedReply = JSON.parse(replyData.reply);
+    
+    if (parsedReply.recommendations) {
+        const title = document.createElement('h6');
+        title.innerHTML = '<i class="bi bi-palette me-2"></i>AI Paint Recommendations';
+        title.className = 'alert alert-success';
+        resultsContainer.appendChild(title);
+        
+        parsedReply.recommendations.forEach(recommendation => {
+            const recDiv = createBootstrapRecommendation(recommendation);
+            resultsContainer.appendChild(recDiv);
+        });
+    }
+    
+    // Add preparation tips
+    if (parsedReply.preparationtips) {
+        const tipsDiv = document.createElement('div');
+        tipsDiv.className = 'alert alert-info mt-3';
+        tipsDiv.innerHTML = `<strong>💡 Preparation Tips:</strong><br>${parsedReply.preparationtips}`;
+        resultsContainer.appendChild(tipsDiv);
+    }
+}
+
+function createBootstrapRecommendation(recommendation) {
+    const recDiv = document.createElement('div');
+    recDiv.className = 'card mb-3';
+    
+    let html = '<div class="card-body">';
+    if (recommendation.image) {
+        html += `<h5 class="card-title">${recommendation.image}</h5>`;
+    }
+    
+    recommendation.colors.forEach(color => {
+        html += `
+            <div class="d-flex align-items-center mb-3 p-2 border rounded">
+                <div style="width:50px;height:50px;background:${color.hex};border:2px solid #333;border-radius:8px;cursor:pointer;flex-shrink:0;" 
+                     onclick="navigator.clipboard?.writeText('${color.hex}')" title="Click to copy ${color.hex}"></div>
+                <div class="ms-3">
+                    <h6 class="mb-1">${color.color}</h6>
+                    <p class="mb-1"><strong>Hex:</strong> ${color.hex} | <strong>Finish:</strong> ${color.finish}</p>
+                    <small class="text-muted">${color.rationale}</small>
                 </div>
-            </div>
-        `;
-    }, 2000);
+            </div>`;
+    });
+    
+    html += '</div>';
+    recDiv.innerHTML = html;
+    return recDiv;
 }
 </script>
 {% endblock %}
