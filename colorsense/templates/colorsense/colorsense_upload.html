@@ -271,13 +271,6 @@ function getCookie(name) {
 
 // Override app.js functions for upload interface
 window.confirmSuggetion = function(description) {
-    const confirmModal = document.getElementById('confirmModal');
-    const confirmText = document.getElementById('confirmText');
-    const yesBtn = document.getElementById('yesBtn');
-    const noBtn = document.getElementById('noBtn');
-    
-    confirmText.innerHTML = "";
-    
     let parsedreply;
     try {
         parsedreply = JSON.parse(description.reply);
@@ -285,40 +278,31 @@ window.confirmSuggetion = function(description) {
         parsedreply = { reply: [] };
     }
     
+    // Add analysis to each image card
     const files = Array.from(description.images || []);
     files.forEach(function(item, index) {
-        const container = document.createElement('div');
-        container.className = 'mb-3 p-3 border rounded';
-        
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(item);
-        img.style.cssText = 'max-width:100%; max-height:200px; border-radius:5px; display:block; margin-bottom:10px;';
-        container.appendChild(img);
-        
-        if (parsedreply.reply[index] && parsedreply.reply[index].room_description) {
-            const desc = document.createElement('p');
-            desc.innerHTML = `<strong>AI Analysis:</strong> ${parsedreply.reply[index].room_description}`;
-            desc.style.cssText = 'margin:0; color:#555; line-height:1.4;';
-            container.appendChild(desc);
+        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card-body`);
+        if (imageCard && parsedreply.reply[index] && parsedreply.reply[index].room_description) {
+            const analysisDiv = document.createElement('div');
+            analysisDiv.className = 'mt-3 p-2 bg-light border rounded';
+            analysisDiv.innerHTML = `<strong class="text-primary"><i class="bi bi-eye me-1"></i>AI Analysis:</strong><br><small>${parsedreply.reply[index].room_description}</small>`;
+            imageCard.appendChild(analysisDiv);
         }
-        
-        confirmText.appendChild(container);
     });
     
-    confirmModal.style.display = 'block';
-    
-    yesBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        sendConfirmation(true, description);
-    };
-    
-    noBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        document.getElementById('resultsSection').style.display = 'none';
-    };
+    // Show confirmation in results section
+    const resultsContainer = document.getElementById('analysisResults');
+    resultsContainer.innerHTML = `
+        <div class="alert alert-info">
+            <h6><i class="bi bi-check-circle me-2"></i>Room Analysis Complete</h6>
+            <p>AI analysis has been added to each image card. Proceed to get paint recommendations?</p>
+            <button class="btn btn-success me-2" onclick="sendConfirmation(true, window.uploadAnalysisData)">Get Paint Recommendations</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('resultsSection').style.display='none'">Cancel</button>
+        </div>
+    `;
 };
 
-window.sendConfirmation = async function(confirmed, description) {
+window.sendConfirmation = async function(confirmed, description = window.uploadAnalysisData) {
     const resultsContainer = document.getElementById('analysisResults');
     resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-palette me-2"></i>Generating paint recommendations...</div>';
     
@@ -350,29 +334,52 @@ window.sendConfirmation = async function(confirmed, description) {
 
 function displayUploadRecommendations(replyData) {
     const resultsContainer = document.getElementById('analysisResults');
-    resultsContainer.innerHTML = '';
-    
-    console.log('Reply data:', replyData); // Debug log
     
     // Parse the JSON string in reply
     const parsedReply = JSON.parse(replyData.reply);
     
+    // Add recommendations to each image card
     if (parsedReply.recommendations) {
-        const title = document.createElement('h6');
-        title.innerHTML = '<i class="bi bi-palette me-2"></i>AI Paint Recommendations';
-        title.className = 'alert alert-success';
-        resultsContainer.appendChild(title);
-        
-        parsedReply.recommendations.forEach(recommendation => {
-            const recDiv = createBootstrapRecommendation(recommendation);
-            resultsContainer.appendChild(recDiv);
+        parsedReply.recommendations.forEach((recommendation, index) => {
+            const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card-body`);
+            if (imageCard) {
+                // Add recommendations section to the image card
+                const recSection = document.createElement('div');
+                recSection.className = 'mt-3 p-2 border-top';
+                recSection.innerHTML = '<h6 class="text-success"><i class="bi bi-palette me-1"></i>Paint Recommendations</h6>';
+                
+                recommendation.colors.forEach(color => {
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'mb-2 p-2 border rounded';
+                    colorDiv.innerHTML = `
+                        <div class="d-flex align-items-start">
+                            <div style="width:30px;height:30px;background:${color.hex};border:1px solid #333;border-radius:4px;cursor:pointer;flex-shrink:0;" 
+                                 onclick="navigator.clipboard?.writeText('${color.hex}')" title="${color.color} - Click to copy"></div>
+                            <div class="ms-2 flex-grow-1">
+                                <small><strong>${color.color}</strong> (${color.hex}) - ${color.finish} finish</small><br>
+                                <small class="text-muted fst-italic">${color.rationale}</small>
+                            </div>
+                        </div>
+                    `;
+                    recSection.appendChild(colorDiv);
+                });
+                
+                imageCard.appendChild(recSection);
+            }
         });
     }
     
-    // Add preparation tips
+    // Show success message and preparation tips in results section
+    resultsContainer.innerHTML = `
+        <div class="alert alert-success">
+            <h6><i class="bi bi-check-circle me-2"></i>Analysis Complete!</h6>
+            <p>Paint recommendations have been added to each image card above.</p>
+        </div>
+    `;
+    
     if (parsedReply.preparationtips) {
         const tipsDiv = document.createElement('div');
-        tipsDiv.className = 'alert alert-info mt-3';
+        tipsDiv.className = 'alert alert-info';
         tipsDiv.innerHTML = `<strong>💡 Preparation Tips:</strong><br>${parsedReply.preparationtips}`;
         resultsContainer.appendChild(tipsDiv);
     }
