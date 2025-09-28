@@ -11,46 +11,100 @@
   </div>
 </div>
 
-<section class="service-details section">
+<section class="service-details section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 60px 0;">
   <div class="container">
-    <!-- Common Preferences -->
-    <div class="row mb-5">
+    <!-- Animated Header -->
+    <div class="text-center mb-5" style="animation: fadeInDown 1s ease-out;">
+      <h1 style="color: white; font-weight: 800; font-size: 3.5rem; margin-bottom: 20px; text-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+        🎨 Create Your Dream Space
+      </h1>
+      <p style="color: rgba(255,255,255,0.9); font-size: 1.3rem; font-weight: 300; max-width: 600px; margin: 0 auto;">
+        Tell us about your preferences and upload your room images for AI-powered paint recommendations
+      </p>
+    </div>
+
+    <!-- Interactive Preferences Cards -->
+    <div class="row mb-5" style="animation: slideInUp 1s ease-out 0.3s both;">
       <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Common Preferences</h5>
+        <div class="preferences-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+          <div class="text-center mb-4">
+            <h3 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 2rem; margin-bottom: 10px;">
+              ⚙️ Your Preferences
+            </h3>
+            <p style="color: #666; font-size: 1.1rem;">Help us understand your style and requirements</p>
           </div>
-          <div class="card-body">
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label for="weather" class="form-label">Weather</label>
-                <select id="weather" class="form-select">
-                  <option value="">Select Weather</option>
-                  <option value="sunny">Sunny</option>
-                  <option value="cloudy">Cloudy</option>
-                  <option value="rainy">Rainy</option>
+          
+          <div class="row g-4">
+            <!-- Weather Card -->
+            <div class="col-md-6 col-lg-3">
+              <div class="preference-card" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); border-radius: 20px; padding: 25px; cursor: pointer; transition: all 0.4s ease; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(255, 154, 158, 0.3)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(255, 154, 158, 0.2)';">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 15px; animation: float 3s ease-in-out infinite;">☀️</div>
+                <h6 style="color: white; font-weight: 700; text-align: center; margin-bottom: 15px; font-size: 1.1rem;">Weather</h6>
+                <select id="weather" class="form-select custom-select" style="background: rgba(255,255,255,0.9); border: none; border-radius: 15px; padding: 12px; font-weight: 600; color: #333; pointer-events: auto; z-index: 10; position: relative;">
+                  <option value="">Choose Weather</option>
+                  <option value="sunny">☀️ Sunny</option>
+                  <option value="cloudy">☁️ Cloudy</option>
+                  <option value="rainy">🌧️ Rainy</option>
+                </select>
+                <div class="card-glow" style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s ease;"></div>
+              </div>
+            </div>
+
+            <!-- Locality Card -->
+            <div class="col-md-6 col-lg-3">
+              <div class="preference-card" onclick="focusSelect('locality')" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 20px; padding: 25px; cursor: pointer; transition: all 0.4s ease; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(168, 237, 234, 0.3)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(168, 237, 234, 0.2)';">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 15px; animation: float 3s ease-in-out infinite 0.5s;">🏢</div>
+                <h6 style="color: white; font-weight: 700; text-align: center; margin-bottom: 15px; font-size: 1.1rem;">Locality</h6>
+                <select id="locality" class="form-select custom-select" style="background: rgba(255,255,255,0.9); border: none; border-radius: 15px; padding: 12px; font-weight: 600; color: #333;">
+                  <option value="">Choose Area</option>
+                  <option value="urban">🏢 Urban</option>
+                  <option value="suburban">🏡 Suburban</option>
+                  <option value="rural">🌳 Rural</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label for="locality" class="form-label">Locality</label>
-                <select id="locality" class="form-select">
-                  <option value="">Select Locality</option>
-                  <option value="urban">Urban</option>
-                  <option value="suburban">Suburban</option>
-                  <option value="rural">Rural</option>
+            </div>
+
+            <!-- Location Card -->
+            <div class="col-md-6 col-lg-3">
+              <div class="preference-card" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%); border-radius: 20px; padding: 25px; cursor: pointer; transition: all 0.4s ease; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(255, 236, 210, 0.3)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(255, 236, 210, 0.2)';">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 15px; animation: float 3s ease-in-out infinite 1s;">📍</div>
+                <h6 style="color: white; font-weight: 700; text-align: center; margin-bottom: 15px; font-size: 1.1rem;">Location</h6>
+                <select id="location" class="form-select custom-select" style="background: rgba(255,255,255,0.9); border: none; border-radius: 15px; padding: 12px; font-weight: 600; color: #333; pointer-events: auto; z-index: 10; position: relative;">
+                  <option value="">Choose City</option>
+                  <option value="mumbai">🏢 Mumbai</option>
+                  <option value="delhi">🏙️ Delhi</option>
+                  <option value="bangalore">🌆 Bangalore</option>
+                  <option value="hyderabad">🏢 Hyderabad</option>
+                  <option value="chennai">🌊 Chennai</option>
+                  <option value="kolkata">🏢 Kolkata</option>
+                  <option value="pune">🌆 Pune</option>
+                  <option value="ahmedabad">🏢 Ahmedabad</option>
+                  <option value="jaipur">🏰 Jaipur</option>
+                  <option value="surat">🏢 Surat</option>
+                  <option value="lucknow">🏢 Lucknow</option>
+                  <option value="kanpur">🏢 Kanpur</option>
+                  <option value="nagpur">🏢 Nagpur</option>
+                  <option value="indore">🏢 Indore</option>
+                  <option value="thane">🏢 Thane</option>
+                  <option value="bhopal">🏢 Bhopal</option>
+                  <option value="visakhapatnam">🌊 Visakhapatnam</option>
+                  <option value="pimpri">🏢 Pimpri-Chinchwad</option>
+                  <option value="patna">🏢 Patna</option>
+                  <option value="vadodara">🏢 Vadodara</option>
                 </select>
               </div>
-              <div class="col-md-3">
-                <label for="location" class="form-label">Location</label>
-                <input type="text" id="location" class="form-control" placeholder="Enter location">
-              </div>
-              <div class="col-md-3">
-                <label for="budget" class="form-label">Budget</label>
-                <select id="budget" class="form-select">
-                  <option value="">Select Budget</option>
-                  <option value="low">Low ($100-500)</option>
-                  <option value="medium">Medium ($500-1500)</option>
-                  <option value="high">High ($1500+)</option>
+            </div>
+
+            <!-- Budget Card -->
+            <div class="col-md-6 col-lg-3">
+              <div class="preference-card" onclick="focusSelect('budget')" style="background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 100%); border-radius: 20px; padding: 25px; cursor: pointer; transition: all 0.4s ease; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 20px 40px rgba(168, 230, 207, 0.3)';" onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(168, 230, 207, 0.2)';">
+                <div style="font-size: 3rem; text-align: center; margin-bottom: 15px; animation: float 3s ease-in-out infinite 1.5s;">💰</div>
+                <h6 style="color: white; font-weight: 700; text-align: center; margin-bottom: 15px; font-size: 1.1rem;">Budget</h6>
+                <select id="budget" class="form-select custom-select" style="background: rgba(255,255,255,0.9); border: none; border-radius: 15px; padding: 12px; font-weight: 600; color: #333;">
+                  <option value="">Choose Budget</option>
+                  <option value="low">💵 Low ($100-500)</option>
+                  <option value="medium">💶 Medium ($500-1500)</option>
+                  <option value="high">💸 High ($1500+)</option>
                 </select>
               </div>
             </div>
@@ -59,35 +113,42 @@
       </div>
     </div>
 
-    <!-- Image Upload -->
-    <div class="row">
+    <!-- Magical Image Upload Section -->
+    <div class="row" style="animation: slideInUp 1s ease-out 0.6s both;">
       <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-success text-white">
-            <h5 class="mb-0"><i class="bi bi-cloud-upload me-2"></i>Upload Room Images (Up to 10)</h5>
+        <div class="upload-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 50px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+          <div class="text-center mb-4">
+            <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 2s infinite;">📷</div>
+            <h3 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 2rem; margin-bottom: 10px;">
+              Upload Your Room Images
+            </h3>
+            <p style="color: #666; font-size: 1.1rem;">Drag & drop up to 10 images or click to browse</p>
           </div>
-          <div class="card-body">
-            <input type="file" id="imageUpload" class="form-control" accept="image/*" multiple>
-            <div id="imagePreviewContainer" class="row g-4 mt-3"></div>
-            <div class="text-center mt-4" id="submitSection" style="display: none;">
-              <button class="btn btn-primary btn-lg" onclick="submitAnalysis()">
-                <i class="bi bi-magic me-2"></i>Get AI Paint Recommendations
-              </button>
+          
+          <!-- Drag & Drop Zone -->
+          <div id="dropZone" class="drop-zone" style="border: 3px dashed #667eea; border-radius: 25px; padding: 60px 20px; text-align: center; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); transition: all 0.3s ease; cursor: pointer; position: relative;" onclick="document.getElementById('imageUpload').click();">
+            <div class="upload-icon" style="font-size: 5rem; color: #667eea; margin-bottom: 20px; animation: pulse 2s infinite;">☁️</div>
+            <h4 style="color: #667eea; font-weight: 700; margin-bottom: 10px;">Drop your images here</h4>
+            <p style="color: #888; font-size: 1.1rem; margin-bottom: 20px;">or click to select files</p>
+            <input type="file" id="imageUpload" class="d-none" accept="image/*" multiple>
+            <div class="upload-sparkles" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+              <div style="position: absolute; top: 20%; left: 20%; font-size: 1.5rem; animation: sparkle 3s infinite; color: #ffd700;">✨</div>
+              <div style="position: absolute; top: 30%; right: 25%; font-size: 1rem; animation: sparkle 3s infinite 1s; color: #ff69b4;">✨</div>
+              <div style="position: absolute; bottom: 25%; left: 30%; font-size: 1.2rem; animation: sparkle 3s infinite 2s; color: #00bfff;">✨</div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Results -->
-    <div class="row mt-5" id="resultsSection" style="display: none;">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-palette me-2"></i>AI Recommendations</h5>
-          </div>
-          <div class="card-body">
-            <div id="analysisResults"></div>
+          
+          <!-- Image Preview Grid -->
+          <div id="imagePreviewContainer" class="row g-4 mt-4"></div>
+          
+          <!-- Analyze Button -->
+          <div class="text-center mt-5" id="submitSection" style="display: none;">
+            <button class="btn btn-lg analyze-btn" onclick="submitAnalysis()" id="submitBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; border-radius: 30px; padding: 20px 50px; font-weight: 700; font-size: 1.2rem; box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4); transition: all 0.4s ease; position: relative; overflow: hidden;">
+              <span style="position: relative; z-index: 2;">
+                <i class="bi bi-search me-3"></i>🏠 Analyse Your Home
+              </span>
+              <div class="btn-shimmer" style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shimmer 2s infinite;"></div>
+            </button>
           </div>
         </div>
       </div>
@@ -95,6 +156,17 @@
   </div>
 </section>
 
+<!-- Loader Modal -->
+<div id="loaderModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:2000;">
+  <div style="background:white; padding:40px; width:400px; margin:20% auto; border-radius:15px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+    <div id="loaderContent">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <h5 id="loaderText" class="fw-bold text-primary">Invoking ColorSense Agent....</h5>
+    </div>
+  </div>
+</div>
 <!-- Confirmation Modal -->
 <div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
   <div style="background:white; padding:30px; width:90%; max-width:700px; margin:3% auto; border-radius:10px; max-height:85%; overflow-y:auto;">
@@ -114,11 +186,80 @@
 <script>
 let uploadedImages = [];
 
-document.getElementById('imageUpload').addEventListener('change', function(e) {
+// Enhanced drag & drop functionality
+const dropZone = document.getElementById('dropZone');
+const imageUpload = document.getElementById('imageUpload');
+
+// Drag & Drop Events
+dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '#764ba2';
+    this.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)';
+    this.style.transform = 'scale(1.02)';
+});
+
+dropZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '#667eea';
+    this.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)';
+    this.style.transform = 'scale(1)';
+});
+
+dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '#667eea';
+    this.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)';
+    this.style.transform = 'scale(1)';
+    
+    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/')).slice(0, 10);
+    if (files.length > 0) {
+        uploadedImages = files;
+        displayImagePreviews(files);
+        showSuccessAnimation();
+    }
+});
+
+// File input change
+imageUpload.addEventListener('change', function(e) {
     const files = Array.from(e.target.files).slice(0, 10);
     uploadedImages = files;
     displayImagePreviews(files);
+    if (files.length > 0) {
+        showSuccessAnimation();
+    }
 });
+
+// Interactive functions (simplified since dropdowns now work properly)
+function focusElement(id) {
+    document.getElementById(id).focus();
+}
+
+function showSuccessAnimation() {
+    const dropZone = document.getElementById('dropZone');
+    dropZone.style.background = 'linear-gradient(135deg, rgba(46, 204, 113, 0.1) 0%, rgba(39, 174, 96, 0.1) 100%)';
+    dropZone.style.borderColor = '#2ecc71';
+    
+    // Add success checkmark
+    const successIcon = document.createElement('div');
+    successIcon.innerHTML = '✓';
+    successIcon.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 4rem;
+        color: #2ecc71;
+        animation: successPop 0.6s ease-out;
+        z-index: 10;
+    `;
+    dropZone.appendChild(successIcon);
+    
+    setTimeout(() => {
+        successIcon.remove();
+        dropZone.style.background = 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)';
+        dropZone.style.borderColor = '#667eea';
+    }, 2000);
+}
 
 function displayImagePreviews(files) {
     const container = document.getElementById('imagePreviewContainer');
@@ -144,43 +285,54 @@ function displayImagePreviews(files) {
 function createImageCard(imageSrc, index, fileName) {
     const col = document.createElement('div');
     col.className = 'col-lg-6 col-xl-4';
+    col.style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`;
     
     col.innerHTML = `
-        <div class="card">
-            <img src="${imageSrc}" class="card-img-top" style="height: 200px; object-fit: cover;">
-            <div class="card-body">
-                <h6>${fileName}</h6>
-                <div class="mb-2">
-                    <label class="form-label">Emotion</label>
-                    <select class="form-select" id="emotion_${index}">
-                        <option value="">Select Emotion</option>
-                        <option value="calm">Calm & Peaceful</option>
-                        <option value="energetic">Energetic & Vibrant</option>
-                        <option value="cozy">Cozy & Warm</option>
-                        <option value="elegant">Elegant & Sophisticated</option>
-                        <option value="fresh">Fresh & Clean</option>
+        <div class="image-card" style="background: white; border-radius: 25px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: all 0.4s ease; position: relative;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 25px 50px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 15px 35px rgba(0,0,0,0.1)';">
+            <div style="position: relative; overflow: hidden;">
+                <img src="${imageSrc}" style="width: 100%; height: 250px; object-fit: cover; transition: transform 0.4s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+                <div style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 8px 15px; font-size: 12px; font-weight: 600; color: #667eea;">
+                    Room ${index + 1}
+                </div>
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 20px 20px 15px; color: white;">
+                    <h6 style="margin: 0; font-weight: 600; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${fileName}</h6>
+                </div>
+            </div>
+            
+            <div style="padding: 25px;">
+                <!-- Emotion Selection -->
+                <div class="mb-3">
+                    <label style="color: #333; font-weight: 600; margin-bottom: 10px; display: block; font-size: 14px;">😊 Desired Mood</label>
+                    <select class="form-select custom-select" id="emotion_${index}" style="border: 2px solid #e9ecef; border-radius: 15px; padding: 12px; font-weight: 500; transition: all 0.3s ease;" onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none';">
+                        <option value="">Choose mood...</option>
+                        <option value="calm">😌 Calm & Peaceful</option>
+                        <option value="energetic">⚡ Energetic & Vibrant</option>
+                        <option value="cozy">🔥 Cozy & Warm</option>
+                        <option value="elegant">✨ Elegant & Sophisticated</option>
+                        <option value="fresh">🌿 Fresh & Clean</option>
                     </select>
                 </div>
-                <div class="row g-2">
+                
+                <div class="row g-3">
                     <div class="col-6">
-                        <label class="form-label">Direction</label>
-                        <select class="form-select" id="direction_${index}">
+                        <label style="color: #333; font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px;">🧭 Direction</label>
+                        <select class="form-select custom-select" id="direction_${index}" style="border: 2px solid #e9ecef; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 500; transition: all 0.3s ease;" onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none';">
                             <option value="">Direction</option>
-                            <option value="north">North</option>
-                            <option value="south">South</option>
-                            <option value="east">East</option>
-                            <option value="west">West</option>
+                            <option value="north">⬆️ North</option>
+                            <option value="south">⬇️ South</option>
+                            <option value="east">➡️ East</option>
+                            <option value="west">⬅️ West</option>
                         </select>
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Room Type</label>
-                        <select class="form-select" id="roomtype_${index}">
-                            <option value="">Room</option>
-                            <option value="living">Living Room</option>
-                            <option value="dining">Dining Room</option>
-                            <option value="kitchen">Kitchen</option>
-                            <option value="bedroom">Bedroom</option>
-                            <option value="bathroom">Bathroom</option>
+                        <label style="color: #333; font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px;">🏠 Room Type</label>
+                        <select class="form-select custom-select" id="roomtype_${index}" style="border: 2px solid #e9ecef; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 500; transition: all 0.3s ease;" onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none';">
+                            <option value="">Room type</option>
+                            <option value="living">🛋️ Living Room</option>
+                            <option value="dining">🍽️ Dining Room</option>
+                            <option value="kitchen">🍳 Kitchen</option>
+                            <option value="bedroom">🛏️ Bedroom</option>
+                            <option value="bathroom">🚿 Bathroom</option>
                         </select>
                     </div>
                 </div>
@@ -196,6 +348,7 @@ function buildMessageFromPreferences() {
     const locality = document.getElementById('locality').value;
     const location = document.getElementById('location').value;
     const budget = document.getElementById('budget').value;
+    
     
     let message = 'Room analysis request.';
     if (weather) message += ` Weather: ${weather}.`;
@@ -220,11 +373,8 @@ function buildMessageFromPreferences() {
 }
 
 async function submitAnalysis() {
-    const resultsSection = document.getElementById('resultsSection');
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsSection.style.display = 'block';
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-hourglass-split me-2"></i>AI analyzing your room...</div>';
-    
+    // Start centered loader with sequential events
+    showLoader();
     // Create fake elements for app.js compatibility
     const fakeMessageEl = { value: buildMessageFromPreferences() };
     const fakeImagesEl = { files: uploadedImages };
@@ -250,16 +400,19 @@ async function submitAnalysis() {
         });
         
         const data = await resp.json();
+        hideLoader();
+        
         if (data.ok) {
             // Store data and show confirmation using app.js style
             window.uploadAnalysisData = data;
             window.uploadAnalysisData.images = images;
             confirmSuggetion(window.uploadAnalysisData);
         } else {
-            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            alert(`Error: ${data.error}`);
         }
     } catch (err) {
-        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+        hideLoader();
+        alert(`Network error: ${err}`);
     }
 }
 
@@ -269,15 +422,132 @@ function getCookie(name) {
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
 
+function showLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
+    
+    const events = [
+        { text: "Invoking ColorSense Agent....", delay: 0 },
+        { text: "ColorSense Agent Invoked...", delay: 1500 },
+        { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
+    
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
+}
+
+function hideLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    loaderModal.style.display = 'none';
+}
+
+function showPaintRecommendationLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
+    
+    const events = [
+        { text: "Generating Paint Recommendations....", delay: 0 },
+        { text: "Analyzing Color Palettes...", delay: 1000 },
+        { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
+}
+
 // Override app.js functions for upload interface
 window.confirmSuggetion = function(description) {
-    const confirmModal = document.getElementById('confirmModal');
-    const confirmText = document.getElementById('confirmText');
-    const yesBtn = document.getElementById('yesBtn');
-    const noBtn = document.getElementById('noBtn');
+function showLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
     
-    confirmText.innerHTML = "";
+    const events = [
+        { text: "Invoking ColorSense Agent....", delay: 0 },
+        { text: "ColorSense Agent Invoked...", delay: 1500 },
+        { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
     
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
+}
+
+function hideLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    loaderModal.style.display = 'none';
+}
+
+function showPaintRecommendationLoader() {
+    const loaderModal = document.getElementById('loaderModal');
+    const loaderText = document.getElementById('loaderText');
+    
+    const events = [
+        { text: "Generating Paint Recommendations....", delay: 0 },
+        { text: "Analyzing Color Palettes...", delay: 1000 },
+        { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    loaderModal.style.display = 'block';
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+        if (currentEventIndex < events.length) {
+            const event = events[currentEventIndex];
+            loaderText.textContent = event.text;
+            currentEventIndex++;
+            
+            if (currentEventIndex < events.length) {
+                setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+            }
+        }
+    }
+    
+    updateLoader();
+}
+
+// Override app.js functions for upload interface
+window.confirmSuggetion = function(description) {
     let parsedreply;
     try {
         parsedreply = JSON.parse(description.reply);
@@ -285,42 +555,165 @@ window.confirmSuggetion = function(description) {
         parsedreply = { reply: [] };
     }
     
+    // Add creative analysis to each image card with animation
     const files = Array.from(description.images || []);
     files.forEach(function(item, index) {
-        const container = document.createElement('div');
-        container.className = 'mb-3 p-3 border rounded';
-        
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(item);
-        img.style.cssText = 'max-width:100%; max-height:200px; border-radius:5px; display:block; margin-bottom:10px;';
-        container.appendChild(img);
-        
-        if (parsedreply.reply[index] && parsedreply.reply[index].room_description) {
-            const desc = document.createElement('p');
-            desc.innerHTML = `<strong>AI Analysis:</strong> ${parsedreply.reply[index].room_description}`;
-            desc.style.cssText = 'margin:0; color:#555; line-height:1.4;';
-            container.appendChild(desc);
+        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .image-card`);
+        if (imageCard && parsedreply.reply[index] && parsedreply.reply[index].room_description) {
+            // Add magical glow effect to the card
+            imageCard.style.transition = 'all 0.8s ease';
+            imageCard.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.6), 0 0 60px rgba(118, 75, 162, 0.3)';
+            imageCard.style.transform = 'translateY(-5px) scale(1.02)';
+            
+            setTimeout(() => {
+                // Find the card body (padding section)
+                const cardBody = imageCard.querySelector('div[style*="padding: 25px"]');
+                
+                // Create magical AI analysis section
+                const analysisDiv = document.createElement('div');
+                analysisDiv.className = 'ai-analysis-section';
+                analysisDiv.style.cssText = `
+                    margin-top: 20px;
+                    padding: 25px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 20px;
+                    color: white;
+                    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+                    animation: magicalAppear 1s ease-out;
+                    position: relative;
+                    overflow: hidden;
+                `;
+                
+                analysisDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; animation: float 3s ease-in-out infinite;">
+                            🤖
+                        </div>
+                        <div>
+                            <h6 style="margin: 0; font-weight: 700; font-size: 16px; color: white;">
+                                ✨ AI Vision Analysis
+                            </h6>
+                            <p style="margin: 0; font-size: 12px; opacity: 0.8;">Powered by Advanced Computer Vision</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; border-left: 4px solid rgba(255,255,255,0.3);">
+                        <p style="margin: 0; line-height: 1.6; font-size: 14px; color: rgba(255,255,255,0.95);">
+                            ${parsedreply.reply[index].room_description}
+                        </p>
+                    </div>
+                    
+                    <!-- Decorative elements -->
+                    <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite;"></div>
+                    <div style="position: absolute; bottom: -10px; left: -10px; width: 30px; height: 30px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite 1s;"></div>
+                    
+                    <!-- Sparkle effects -->
+                    <div style="position: absolute; top: 20%; left: 15%; font-size: 12px; animation: sparkle 4s infinite; color: rgba(255,255,255,0.6);">✨</div>
+                    <div style="position: absolute; top: 60%; right: 20%; font-size: 10px; animation: sparkle 4s infinite 2s; color: rgba(255,255,255,0.6);">⭐</div>
+                `;
+                
+                // Insert before the existing form elements
+                const firstFormElement = cardBody.querySelector('.mb-3');
+                cardBody.insertBefore(analysisDiv, firstFormElement);
+                
+                // Reset card styling after animation
+                setTimeout(() => {
+                    imageCard.style.boxShadow = '0 15px 35px rgba(0,0,0,0.1)';
+                    imageCard.style.transform = 'translateY(0) scale(1)';
+                }, 2000);
+                
+            }, index * 400); // Stagger the animations
         }
-        
-        confirmText.appendChild(container);
     });
     
-    confirmModal.style.display = 'block';
-    
-    yesBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        sendConfirmation(true, description);
-    };
-    
-    noBtn.onclick = () => {
-        confirmModal.style.display = 'none';
-        document.getElementById('resultsSection').style.display = 'none';
-    };
+    // Replace the main button after all analyses are shown
+    setTimeout(() => {
+        replaceMainButton();
+    }, files.length * 400 + 800);
 };
 
-window.sendConfirmation = async function(confirmed, description) {
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsContainer.innerHTML = '<div class="text-center"><i class="bi bi-palette me-2"></i>Generating paint recommendations...</div>';
+window.sendConfirmation = async function(confirmed, description = window.uploadAnalysisData) {
+    showPaintRecommendationLoader();
+    // Add creative analysis to each image card with animation
+    const files = Array.from(description.images || []);
+    files.forEach(function(item, index) {
+        const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .image-card`);
+        if (imageCard && parsedreply.reply[index] && parsedreply.reply[index].room_description) {
+            // Add magical glow effect to the card
+            imageCard.style.transition = 'all 0.8s ease';
+            imageCard.style.boxShadow = '0 0 30px rgba(102, 126, 234, 0.6), 0 0 60px rgba(118, 75, 162, 0.3)';
+            imageCard.style.transform = 'translateY(-5px) scale(1.02)';
+            
+            setTimeout(() => {
+                // Find the card body (padding section)
+                const cardBody = imageCard.querySelector('div[style*="padding: 25px"]');
+                
+                // Create magical AI analysis section
+                const analysisDiv = document.createElement('div');
+                analysisDiv.className = 'ai-analysis-section';
+                analysisDiv.style.cssText = `
+                    margin-top: 20px;
+                    padding: 25px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border-radius: 20px;
+                    color: white;
+                    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.3);
+                    animation: magicalAppear 1s ease-out;
+                    position: relative;
+                    overflow: hidden;
+                `;
+                
+                analysisDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 15px; animation: float 3s ease-in-out infinite;">
+                            🤖
+                        </div>
+                        <div>
+                            <h6 style="margin: 0; font-weight: 700; font-size: 16px; color: white;">
+                                ✨ AI Vision Analysis
+                            </h6>
+                            <p style="margin: 0; font-size: 12px; opacity: 0.8;">Powered by Advanced Computer Vision</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; border-left: 4px solid rgba(255,255,255,0.3);">
+                        <p style="margin: 0; line-height: 1.6; font-size: 14px; color: rgba(255,255,255,0.95);">
+                            ${parsedreply.reply[index].room_description}
+                        </p>
+                    </div>
+                    
+                    <!-- Decorative elements -->
+                    <div style="position: absolute; top: -20px; right: -20px; width: 60px; height: 60px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite;"></div>
+                    <div style="position: absolute; bottom: -10px; left: -10px; width: 30px; height: 30px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; animation: pulse 3s infinite 1s;"></div>
+                    
+                    <!-- Sparkle effects -->
+                    <div style="position: absolute; top: 20%; left: 15%; font-size: 12px; animation: sparkle 4s infinite; color: rgba(255,255,255,0.6);">✨</div>
+                    <div style="position: absolute; top: 60%; right: 20%; font-size: 10px; animation: sparkle 4s infinite 2s; color: rgba(255,255,255,0.6);">⭐</div>
+                `;
+                
+                // Insert before the existing form elements
+                const firstFormElement = cardBody.querySelector('.mb-3');
+                cardBody.insertBefore(analysisDiv, firstFormElement);
+                
+                // Reset card styling after animation
+                setTimeout(() => {
+                    imageCard.style.boxShadow = '0 15px 35px rgba(0,0,0,0.1)';
+                    imageCard.style.transform = 'translateY(0) scale(1)';
+                }, 2000);
+                
+            }, index * 400); // Stagger the animations
+        }
+    });
+    
+    // Replace the main button after all analyses are shown
+    setTimeout(() => {
+        replaceMainButton();
+    }, files.length * 400 + 800);
+};
+
+window.sendConfirmation = async function(confirmed, description = window.uploadAnalysisData) {
+    showPaintRecommendationLoader();
+>>>>>>> scratch/bootstrap-improvement-v.1
     
     const form = new FormData();
     form.append('confirm', confirmed);
@@ -338,71 +731,1316 @@ window.sendConfirmation = async function(confirmed, description) {
         });
         
         const data = await resp.json();
+        hideLoader();
+        
         if (data.ok) {
             displayUploadRecommendations(data.reply);
         } else {
-            resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error}</div>`;
+            alert(`Error: ${data.error}`);
         }
     } catch (err) {
-        resultsContainer.innerHTML = `<div class="alert alert-danger">Network error: ${err}</div>`;
+        hideLoader();
+        alert(`Network error: ${err}`);
     }
 };
 
 function displayUploadRecommendations(replyData) {
-    const resultsContainer = document.getElementById('analysisResults');
-    resultsContainer.innerHTML = '';
-    
-    console.log('Reply data:', replyData); // Debug log
-    
     // Parse the JSON string in reply
     const parsedReply = JSON.parse(replyData.reply);
     
-    if (parsedReply.recommendations) {
-        const title = document.createElement('h6');
-        title.innerHTML = '<i class="bi bi-palette me-2"></i>AI Paint Recommendations';
-        title.className = 'alert alert-success';
-        resultsContainer.appendChild(title);
-        
-        parsedReply.recommendations.forEach(recommendation => {
-            const recDiv = createBootstrapRecommendation(recommendation);
-            resultsContainer.appendChild(recDiv);
-        });
+    // Create full-screen interactive paint experience
+    setTimeout(() => {
+        createInteractivePaintExperience(parsedReply);
+    }, 1000);
+}
+
+let currentRoomIndex = 0;
+
+function createInteractivePaintExperience(parsedReply) {
+    // Create full-screen overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'paintExperience';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 3000;
+        overflow: hidden;
+        animation: slideInFromBottom 1s ease-out;
+    `;
+    
+    // Create header with navigation
+    const header = document.createElement('div');
+    header.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        padding: 20px 30px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    header.innerHTML = `
+        <div>
+            <h2 style="margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+                🎨 Interactive Paint Studio
+            </h2>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Room <span id="currentRoomNumber">1</span> of ${uploadedImages.length} • Click colors to paint walls instantly!</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="previousRoom()" id="prevBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">‹</button>
+                <button onclick="nextRoom()" id="nextBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">›</button>
+            </div>
+            <button onclick="closePaintExperience()" style="background: #ff4757; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#ff3742';" onmouseout="this.style.background='#ff4757';">×</button>
+        </div>
+    `;
+    
+    // Create main content area
+    const content = document.createElement('div');
+    content.id = 'studioContent';
+    content.style.cssText = `
+        position: absolute;
+        top: 90px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+    `;
+    
+    // Create room container
+    const roomContainer = document.createElement('div');
+    roomContainer.id = 'roomContainer';
+    roomContainer.style.cssText = `
+        width: 100%;
+        height: 100%;
+        max-width: 1200px;
+        display: flex;
+        background: white;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    `;
+    
+    content.appendChild(roomContainer);
+    overlay.appendChild(header);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    // Initialize with first room
+    window.paintStudioData = parsedReply;
+    showRoom(0);
+    updateNavigationButtons();
+}
+
+function showRoom(index) {
+    currentRoomIndex = index;
+    const container = document.getElementById('roomContainer');
+    const imageFile = uploadedImages[index];
+    const parsedReply = window.paintStudioData;
+    
+    // Get user preferences for this image
+    const emotion = document.getElementById(`emotion_${index}`)?.value || '';
+    const direction = document.getElementById(`direction_${index}`)?.value || '';
+    const roomtype = document.getElementById(`roomtype_${index}`)?.value || '';
+    const weather = document.getElementById('weather')?.value || '';
+    const locality = document.getElementById('locality')?.value || '';
+    const budget = document.getElementById('budget')?.value || '';
+    
+    // Get AI analysis
+    let roomAnalysis = '';
+    try {
+        const analysisData = JSON.parse(window.uploadAnalysisData.reply);
+        roomAnalysis = analysisData.reply[index]?.room_description || '';
+    } catch (e) {
+        roomAnalysis = 'AI analysis not available';
     }
     
-    // Add preparation tips
-    if (parsedReply.preparationtips) {
-        const tipsDiv = document.createElement('div');
-        tipsDiv.className = 'alert alert-info mt-3';
-        tipsDiv.innerHTML = `<strong>💡 Preparation Tips:</strong><br>${parsedReply.preparationtips}`;
-        resultsContainer.appendChild(tipsDiv);
+    // Get recommendations for this room
+    const recommendation = parsedReply.recommendations?.[index] || { colors: [] };
+    
+    container.innerHTML = `
+        <!-- Large Image Section -->
+        <div style="flex: 2; position: relative; background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 500px;">
+            <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
+                 style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);" 
+                 onclick="handleImageClick(event, ${index})">
+            
+            <!-- Room Label -->
+            <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600;">
+                Room ${index + 1} ${roomtype ? `• ${roomtype}` : ''}
+            </div>
+            
+            <!-- Status Indicator -->
+            <div id="coloringStatus_${index}" style="position: absolute; top: 20px; right: 20px; background: rgba(17, 153, 142, 0.95); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; display: none;">
+                🎨 Painting...
+            </div>
+            
+            <!-- Reset Button -->
+            <div style="position: absolute; bottom: 20px; right: 20px;">
+                <button onclick="resetRoomImage(${index})" 
+                        style="background: rgba(255, 107, 107, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255, 82, 82, 0.95)';" 
+                        onmouseout="this.style.background='rgba(255, 107, 107, 0.9)';">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+        
+        <!-- Info Panel -->
+        <div style="flex: 1; padding: 30px; overflow-y: auto; background: white;">
+            <!-- User Preferences -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">📋 Your Preferences</h6>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${emotion ? `<span class="pref-tag">${emotion}</span>` : ''}
+                    ${direction ? `<span class="pref-tag">${direction} facing</span>` : ''}
+                    ${roomtype ? `<span class="pref-tag">${roomtype}</span>` : ''}
+                    ${weather ? `<span class="pref-tag">${weather}</span>` : ''}
+                    ${locality ? `<span class="pref-tag">${locality}</span>` : ''}
+                    ${budget ? `<span class="pref-tag">${budget} budget</span>` : ''}
+                </div>
+            </div>
+            
+            <!-- AI Analysis -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🤖 AI Analysis</h6>
+                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 15px; border-left: 4px solid #667eea;">
+                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #555;">
+                        ${roomAnalysis}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Color Palette -->
+            <div>
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🎨 Paint Colors</h6>
+                <p style="color: #666; font-size: 13px; margin-bottom: 20px; font-style: italic;">Click any color below, then click on the image walls to paint!</p>
+                
+                <div class="color-palette" style="display: flex; flex-direction: column; gap: 15px;">
+                    ${recommendation.colors.map(color => `
+                        <div class="color-option" onclick="selectColor('${color.hex}', ${index})" 
+                             style="background: white; border: 2px solid #eee; border-radius: 15px; padding: 20px; cursor: pointer; transition: all 0.3s ease;"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'; this.style.borderColor='${color.hex}';" 
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'; this.style.borderColor='#eee';">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 50px; height: 50px; background: ${color.hex}; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-shrink: 0;"></div>
+                                <div style="flex: 1;">
+                                    <h6 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 600; color: #333;">${color.color}</h6>
+                                    <p style="margin: 0 0 8px 0; font-size: 13px; color: #666; font-weight: 500;">${color.hex} • ${color.finish} finish</p>
+                                    <p style="margin: 0; font-size: 12px; color: #888; line-height: 1.4;">${color.rationale}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update room number in header
+    document.getElementById('currentRoomNumber').textContent = index + 1;
+}
+
+function nextRoom() {
+    if (currentRoomIndex < uploadedImages.length - 1) {
+        showRoom(currentRoomIndex + 1);
+        updateNavigationButtons();
     }
 }
 
-function createBootstrapRecommendation(recommendation) {
-    const recDiv = document.createElement('div');
-    recDiv.className = 'card mb-3';
+function previousRoom() {
+    if (currentRoomIndex > 0) {
+        showRoom(currentRoomIndex - 1);
+        updateNavigationButtons();
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
     
-    let html = '<div class="card-body">';
-    if (recommendation.image) {
-        html += `<h5 class="card-title">${recommendation.image}</h5>`;
+    // Update button states
+    if (currentRoomIndex === 0) {
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+    } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
     }
     
-    recommendation.colors.forEach(color => {
-        html += `
-            <div class="d-flex align-items-center mb-3 p-2 border rounded">
-                <div style="width:50px;height:50px;background:${color.hex};border:2px solid #333;border-radius:8px;cursor:pointer;flex-shrink:0;" 
-                     onclick="navigator.clipboard?.writeText('${color.hex}')" title="Click to copy ${color.hex}"></div>
-                <div class="ms-3">
-                    <h6 class="mb-1">${color.color}</h6>
-                    <p class="mb-1"><strong>Hex:</strong> ${color.hex} | <strong>Finish:</strong> ${color.finish}</p>
-                    <small class="text-muted">${color.rationale}</small>
+    if (currentRoomIndex === uploadedImages.length - 1) {
+        nextBtn.style.opacity = '0.5';
+        nextBtn.style.cursor = 'not-allowed';
+    } else {
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+    }
+}
+
+function replaceMainButton() {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitSection = document.getElementById('submitSection');
+    
+    // Animate out the old button
+    submitBtn.style.transform = 'scale(0.8)';
+    submitBtn.style.opacity = '0';
+    
+    setTimeout(() => {
+        // Replace with creative paint recommendations button
+        submitSection.innerHTML = `
+            <div style="animation: magicAppear 1s ease-out;">
+                <div class="text-center mb-3">
+                    <div style="font-size: 48px; animation: float 2s ease-in-out infinite;">🎨</div>
+                    <h4 style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0;">
+                        Analysis Complete!
+                    </h4>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                        Your rooms have been analyzed by our AI. Ready for personalized paint recommendations?
+                    </p>
                 </div>
-            </div>`;
+                <button onclick="sendConfirmation(true, window.uploadAnalysisData)" 
+                        style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+                               border: none; color: white; border-radius: 30px; padding: 18px 40px;
+                               font-weight: 700; font-size: 16px; cursor: pointer;
+                               box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+                               transition: all 0.4s ease; position: relative; overflow: hidden;"
+                        onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 107, 107, 0.4)';" 
+                        onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(255, 107, 107, 0.3)';">
+                    <span style="position: relative; z-index: 2;">
+                        ✨ Generate My Perfect Colors ✨
+                    </span>
+                    <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; 
+                                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                                animation: shimmer 2s infinite;"></div>
+                </button>
+                <div class="mt-3">
+                    <small style="color: #888; font-style: italic;">
+                        🔮 AI-powered recommendations based on your room analysis
+                    </small>
+                </div>
+            </div>
+        `;
+    }, 300);
+}
+
+// Global variables for colorizer sessions
+let colorizerSessions = {};
+let selectedColor = null;
+
+function closePaintExperience() {
+    const overlay = document.getElementById('paintExperience');
+    if (overlay) {
+        overlay.style.animation = 'slideOutToBottom 0.8s ease-out';
+        setTimeout(() => {
+            overlay.remove();
+            // Cleanup all colorizer sessions
+            Object.keys(colorizerSessions).forEach(sessionId => {
+                cleanupColorizerSession(sessionId);
+            });
+            colorizerSessions = {};
+        }, 800);
+    }
+}
+
+function selectColor(hexColor, roomIndex) {
+    selectedColor = hexColor;
+    
+    // Visual feedback - reset all options
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.style.borderColor = '#eee';
+        option.style.transform = 'translateX(0)';
+        option.style.boxShadow = 'none';
+        option.style.background = 'white';
     });
     
-    html += '</div>';
-    recDiv.innerHTML = html;
-    return recDiv;
+    // Highlight selected option
+    const selectedOption = event.target.closest('.color-option');
+    selectedOption.style.borderColor = hexColor;
+    selectedOption.style.transform = 'translateX(10px)';
+    selectedOption.style.boxShadow = `0 12px 30px ${hexColor}30`;
+    selectedOption.style.background = `${hexColor}08`;
+    
+    // Show instruction
+    showColorInstruction(roomIndex, hexColor);
+}
+
+function showColorInstruction(roomIndex, hexColor) {
+    const existingInstruction = document.getElementById(`instruction_${roomIndex}`);
+    if (existingInstruction) existingInstruction.remove();
+    
+    const imageContainer = document.querySelector(`#roomImage_${roomIndex}`).parentElement;
+    const instruction = document.createElement('div');
+    instruction.id = `instruction_${roomIndex}`;
+    instruction.style.cssText = `
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${hexColor};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        animation: bounceIn 0.6s ease-out;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+    `;
+    instruction.innerHTML = '👆 Click on walls to paint them!';
+    imageContainer.appendChild(instruction);
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+        if (instruction.parentElement) {
+            instruction.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => instruction.remove(), 500);
+        }
+    }, 4000);
+}
+
+async function handleImageClick(event, roomIndex) {
+    if (!selectedColor) {
+        alert('Please select a color first!');
+        return;
+    }
+    
+    const rect = event.target.getBoundingClientRect();
+    const x = Math.round(event.clientX - rect.left);
+    const y = Math.round(event.clientY - rect.top);
+    
+    // Scale coordinates to actual image size
+    const scaleX = event.target.naturalWidth / rect.width;
+    const scaleY = event.target.naturalHeight / rect.height;
+    const actualX = Math.round(x * scaleX);
+    const actualY = Math.round(y * scaleY);
+    
+    await paintImageAtPoint(roomIndex, actualX, actualY, selectedColor);
+}
+
+async function paintImageAtPoint(roomIndex, x, y, color) {
+    const statusDiv = document.getElementById(`coloringStatus_${roomIndex}`);
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    try {
+        statusDiv.style.display = 'block';
+        
+        // Initialize colorizer session if not exists
+        if (!colorizerSessions[roomIndex]) {
+            await initializeColorizerSession(roomIndex);
+        }
+        
+        const sessionId = colorizerSessions[roomIndex];
+        
+        // Call colorizer API
+        const response = await fetch('/api/colorizer/color/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                x: x,
+                y: y,
+                color: color
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update image with colored version
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+            
+            // Success animation
+            statusDiv.innerHTML = '✨ Painted!';
+            statusDiv.style.background = 'rgba(46, 204, 113, 0.9)';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+                statusDiv.innerHTML = '🎨 Painting...';
+                statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Coloring failed');
+        }
+        
+    } catch (error) {
+        console.error('Painting error:', error);
+        statusDiv.innerHTML = '⚠️ Error';
+        statusDiv.style.background = 'rgba(231, 76, 60, 0.9)';
+        
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '🎨 Painting...';
+            statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+        }, 3000);
+    }
+}
+
+async function initializeColorizerSession(roomIndex) {
+    const imageFile = uploadedImages[roomIndex];
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await fetch('/api/colorizer/upload/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+        colorizerSessions[roomIndex] = data.session_id;
+        return data.session_id;
+    } else {
+        throw new Error(data.error || 'Failed to initialize colorizer session');
+    }
+}
+
+async function resetRoomImage(roomIndex) {
+    const sessionId = colorizerSessions[roomIndex];
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    if (!sessionId) {
+        // Reset to original uploaded image
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/colorizer/reset/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+        } else {
+            // Fallback to original
+            imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        }
+    } catch (error) {
+        console.error('Reset error:', error);
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+    }
+}
+
+async function cleanupColorizerSession(sessionId) {
+    try {
+        await fetch('/api/colorizer/cleanup/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+    } catch (error) {
+        console.error('Cleanup error:', error);
+    }
+>>>>>>> scratch/bootstrap-improvement-v.1
+}
+    // Parse the JSON string in reply
+    const parsedReply = JSON.parse(replyData.reply);
+    
+    // Create full-screen interactive paint experience
+    setTimeout(() => {
+        createInteractivePaintExperience(parsedReply);
+    }, 1000);
+}
+
+let currentRoomIndex = 0;
+
+function createInteractivePaintExperience(parsedReply) {
+    // Create full-screen overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'paintExperience';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 3000;
+        overflow: hidden;
+        animation: slideInFromBottom 1s ease-out;
+    `;
+    
+    // Create header with navigation
+    const header = document.createElement('div');
+    header.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        padding: 20px 30px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    header.innerHTML = `
+        <div>
+            <h2 style="margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+                🎨 Interactive Paint Studio
+            </h2>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Room <span id="currentRoomNumber">1</span> of ${uploadedImages.length} • Click colors to paint walls instantly!</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="previousRoom()" id="prevBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">‹</button>
+                <button onclick="nextRoom()" id="nextBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">›</button>
+            </div>
+            <button onclick="closePaintExperience()" style="background: #ff4757; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#ff3742';" onmouseout="this.style.background='#ff4757';">×</button>
+        </div>
+    `;
+    
+    // Create main content area
+    const content = document.createElement('div');
+    content.id = 'studioContent';
+    content.style.cssText = `
+        position: absolute;
+        top: 90px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+    `;
+    
+    // Create room container
+    const roomContainer = document.createElement('div');
+    roomContainer.id = 'roomContainer';
+    roomContainer.style.cssText = `
+        width: 100%;
+        height: 100%;
+        max-width: 1200px;
+        display: flex;
+        background: white;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    `;
+    
+    content.appendChild(roomContainer);
+    overlay.appendChild(header);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    // Initialize with first room
+    window.paintStudioData = parsedReply;
+    showRoom(0);
+    updateNavigationButtons();
+}
+
+function showRoom(index) {
+    currentRoomIndex = index;
+    const container = document.getElementById('roomContainer');
+    const imageFile = uploadedImages[index];
+    const parsedReply = window.paintStudioData;
+    
+    // Get user preferences for this image
+    const emotion = document.getElementById(`emotion_${index}`)?.value || '';
+    const direction = document.getElementById(`direction_${index}`)?.value || '';
+    const roomtype = document.getElementById(`roomtype_${index}`)?.value || '';
+    const weather = document.getElementById('weather')?.value || '';
+    const locality = document.getElementById('locality')?.value || '';
+    const budget = document.getElementById('budget')?.value || '';
+    
+    // Get AI analysis
+    let roomAnalysis = '';
+    try {
+        const analysisData = JSON.parse(window.uploadAnalysisData.reply);
+        roomAnalysis = analysisData.reply[index]?.room_description || '';
+    } catch (e) {
+        roomAnalysis = 'AI analysis not available';
+    }
+    
+    // Get recommendations for this room
+    const recommendation = parsedReply.recommendations?.[index] || { colors: [] };
+    
+    container.innerHTML = `
+        <!-- Large Image Section -->
+        <div style="flex: 2; position: relative; background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 500px;">
+            <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
+                 style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);" 
+                 onclick="handleImageClick(event, ${index})">
+            
+            <!-- Room Label -->
+            <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600;">
+                Room ${index + 1} ${roomtype ? `• ${roomtype}` : ''}
+            </div>
+            
+            <!-- Status Indicator -->
+            <div id="coloringStatus_${index}" style="position: absolute; top: 20px; right: 20px; background: rgba(17, 153, 142, 0.95); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; display: none;">
+                🎨 Painting...
+            </div>
+            
+            <!-- Reset Button -->
+            <div style="position: absolute; bottom: 20px; right: 20px;">
+                <button onclick="resetRoomImage(${index})" 
+                        style="background: rgba(255, 107, 107, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255, 82, 82, 0.95)';" 
+                        onmouseout="this.style.background='rgba(255, 107, 107, 0.9)';">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+        
+        <!-- Info Panel -->
+        <div style="flex: 1; padding: 30px; overflow-y: auto; background: white;">
+            <!-- User Preferences -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">📋 Your Preferences</h6>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${emotion ? `<span class="pref-tag">${emotion}</span>` : ''}
+                    ${direction ? `<span class="pref-tag">${direction} facing</span>` : ''}
+                    ${roomtype ? `<span class="pref-tag">${roomtype}</span>` : ''}
+                    ${weather ? `<span class="pref-tag">${weather}</span>` : ''}
+                    ${locality ? `<span class="pref-tag">${locality}</span>` : ''}
+                    ${budget ? `<span class="pref-tag">${budget} budget</span>` : ''}
+                </div>
+            </div>
+            
+            <!-- AI Analysis -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🤖 AI Analysis</h6>
+                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 15px; border-left: 4px solid #667eea;">
+                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #555;">
+                        ${roomAnalysis}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Color Palette -->
+            <div>
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🎨 Paint Colors</h6>
+                <p style="color: #666; font-size: 13px; margin-bottom: 20px; font-style: italic;">Click any color below, then click on the image walls to paint!</p>
+                
+                <div class="color-palette" style="display: flex; flex-direction: column; gap: 15px;">
+                    ${recommendation.colors.map(color => `
+                        <div class="color-option" onclick="selectColor('${color.hex}', ${index})" 
+                             style="background: white; border: 2px solid #eee; border-radius: 15px; padding: 20px; cursor: pointer; transition: all 0.3s ease;"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'; this.style.borderColor='${color.hex}';" 
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'; this.style.borderColor='#eee';">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 50px; height: 50px; background: ${color.hex}; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-shrink: 0;"></div>
+                                <div style="flex: 1;">
+                                    <h6 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 600; color: #333;">${color.color}</h6>
+                                    <p style="margin: 0 0 8px 0; font-size: 13px; color: #666; font-weight: 500;">${color.hex} • ${color.finish} finish</p>
+                                    <p style="margin: 0; font-size: 12px; color: #888; line-height: 1.4;">${color.rationale}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update room number in header
+    document.getElementById('currentRoomNumber').textContent = index + 1;
+}
+
+function nextRoom() {
+    if (currentRoomIndex < uploadedImages.length - 1) {
+        showRoom(currentRoomIndex + 1);
+        updateNavigationButtons();
+    }
+}
+
+function previousRoom() {
+    if (currentRoomIndex > 0) {
+        showRoom(currentRoomIndex - 1);
+        updateNavigationButtons();
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Update button states
+    if (currentRoomIndex === 0) {
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+    } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+    }
+    
+    if (currentRoomIndex === uploadedImages.length - 1) {
+        nextBtn.style.opacity = '0.5';
+        nextBtn.style.cursor = 'not-allowed';
+    } else {
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
+    }
+}
+
+function replaceMainButton() {
+    const submitBtn = document.getElementById('submitBtn');
+    const submitSection = document.getElementById('submitSection');
+    
+    // Animate out the old button
+    submitBtn.style.transform = 'scale(0.8)';
+    submitBtn.style.opacity = '0';
+    
+    setTimeout(() => {
+        // Replace with creative paint recommendations button
+        submitSection.innerHTML = `
+            <div style="animation: magicAppear 1s ease-out;">
+                <div class="text-center mb-3">
+                    <div style="font-size: 48px; animation: float 2s ease-in-out infinite;">🎨</div>
+                    <h4 style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; margin: 10px 0;">
+                        Analysis Complete!
+                    </h4>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 20px;">
+                        Your rooms have been analyzed by our AI. Ready for personalized paint recommendations?
+                    </p>
+                </div>
+                <button onclick="sendConfirmation(true, window.uploadAnalysisData)" 
+                        style="background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+                               border: none; color: white; border-radius: 30px; padding: 18px 40px;
+                               font-weight: 700; font-size: 16px; cursor: pointer;
+                               box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+                               transition: all 0.4s ease; position: relative; overflow: hidden;"
+                        onmouseover="this.style.transform='translateY(-3px) scale(1.05)'; this.style.boxShadow='0 15px 40px rgba(255, 107, 107, 0.4)';" 
+                        onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(255, 107, 107, 0.3)';">
+                    <span style="position: relative; z-index: 2;">
+                        ✨ Generate My Perfect Colors ✨
+                    </span>
+                    <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; 
+                                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                                animation: shimmer 2s infinite;"></div>
+                </button>
+                <div class="mt-3">
+                    <small style="color: #888; font-style: italic;">
+                        🔮 AI-powered recommendations based on your room analysis
+                    </small>
+                </div>
+            </div>
+        `;
+    }, 300);
+}
+
+// Global variables for colorizer sessions
+let colorizerSessions = {};
+let selectedColor = null;
+
+function closePaintExperience() {
+    const overlay = document.getElementById('paintExperience');
+    if (overlay) {
+        overlay.style.animation = 'slideOutToBottom 0.8s ease-out';
+        setTimeout(() => {
+            overlay.remove();
+            // Cleanup all colorizer sessions
+            Object.keys(colorizerSessions).forEach(sessionId => {
+                cleanupColorizerSession(sessionId);
+            });
+            colorizerSessions = {};
+        }, 800);
+    }
+}
+
+function selectColor(hexColor, roomIndex) {
+    selectedColor = hexColor;
+    
+    // Visual feedback - reset all options
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.style.borderColor = '#eee';
+        option.style.transform = 'translateX(0)';
+        option.style.boxShadow = 'none';
+        option.style.background = 'white';
+    });
+    
+    // Highlight selected option
+    const selectedOption = event.target.closest('.color-option');
+    selectedOption.style.borderColor = hexColor;
+    selectedOption.style.transform = 'translateX(10px)';
+    selectedOption.style.boxShadow = `0 12px 30px ${hexColor}30`;
+    selectedOption.style.background = `${hexColor}08`;
+    
+    // Show instruction
+    showColorInstruction(roomIndex, hexColor);
+}
+
+function showColorInstruction(roomIndex, hexColor) {
+    const existingInstruction = document.getElementById(`instruction_${roomIndex}`);
+    if (existingInstruction) existingInstruction.remove();
+    
+    const imageContainer = document.querySelector(`#roomImage_${roomIndex}`).parentElement;
+    const instruction = document.createElement('div');
+    instruction.id = `instruction_${roomIndex}`;
+    instruction.style.cssText = `
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${hexColor};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        animation: bounceIn 0.6s ease-out;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+    `;
+    instruction.innerHTML = '👆 Click on walls to paint them!';
+    imageContainer.appendChild(instruction);
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+        if (instruction.parentElement) {
+            instruction.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => instruction.remove(), 500);
+        }
+    }, 4000);
+}
+
+async function handleImageClick(event, roomIndex) {
+    if (!selectedColor) {
+        alert('Please select a color first!');
+        return;
+    }
+    
+    const rect = event.target.getBoundingClientRect();
+    const x = Math.round(event.clientX - rect.left);
+    const y = Math.round(event.clientY - rect.top);
+    
+    // Scale coordinates to actual image size
+    const scaleX = event.target.naturalWidth / rect.width;
+    const scaleY = event.target.naturalHeight / rect.height;
+    const actualX = Math.round(x * scaleX);
+    const actualY = Math.round(y * scaleY);
+    
+    await paintImageAtPoint(roomIndex, actualX, actualY, selectedColor);
+}
+
+async function paintImageAtPoint(roomIndex, x, y, color) {
+    const statusDiv = document.getElementById(`coloringStatus_${roomIndex}`);
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    try {
+        statusDiv.style.display = 'block';
+        
+        // Initialize colorizer session if not exists
+        if (!colorizerSessions[roomIndex]) {
+            await initializeColorizerSession(roomIndex);
+        }
+        
+        const sessionId = colorizerSessions[roomIndex];
+        
+        // Call colorizer API
+        const response = await fetch('/api/colorizer/color/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                x: x,
+                y: y,
+                color: color
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update image with colored version
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+            
+            // Success animation
+            statusDiv.innerHTML = '✨ Painted!';
+            statusDiv.style.background = 'rgba(46, 204, 113, 0.9)';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+                statusDiv.innerHTML = '🎨 Painting...';
+                statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Coloring failed');
+        }
+        
+    } catch (error) {
+        console.error('Painting error:', error);
+        statusDiv.innerHTML = '⚠️ Error';
+        statusDiv.style.background = 'rgba(231, 76, 60, 0.9)';
+        
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '🎨 Painting...';
+            statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+        }, 3000);
+    }
+}
+
+async function initializeColorizerSession(roomIndex) {
+    const imageFile = uploadedImages[roomIndex];
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await fetch('/api/colorizer/upload/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+        colorizerSessions[roomIndex] = data.session_id;
+        return data.session_id;
+    } else {
+        throw new Error(data.error || 'Failed to initialize colorizer session');
+    }
+}
+
+async function resetRoomImage(roomIndex) {
+    const sessionId = colorizerSessions[roomIndex];
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    if (!sessionId) {
+        // Reset to original uploaded image
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/colorizer/reset/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+        } else {
+            // Fallback to original
+            imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        }
+    } catch (error) {
+        console.error('Reset error:', error);
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+    }
+}
+
+async function cleanupColorizerSession(sessionId) {
+    try {
+        await fetch('/api/colorizer/cleanup/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+    } catch (error) {
+        console.error('Cleanup error:', error);
+    }
+>>>>>>> scratch/bootstrap-improvement-v.1
 }
 </script>
+
+<style>
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+@keyframes magicAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.5) rotateY(180deg);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1) rotateY(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0deg);
+    }
+}
+
+@keyframes magicalAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.8);
+        filter: blur(10px);
+    }
+    50% {
+        opacity: 0.7;
+        transform: translateY(-5px) scale(1.05);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0px);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.pref-tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+@keyframes slideOutToBottom {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fadeInDown {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 53%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40%, 43% {
+        transform: translateY(-20px);
+    }
+    70% {
+        transform: translateY(-10px);
+    }
+    90% {
+        transform: translateY(-4px);
+    }
+}
+
+@keyframes sparkle {
+    0%, 100% {
+        opacity: 0;
+        transform: scale(0.5) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+}
+
+@keyframes successPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.3);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.preference-card:hover .card-glow {
+    opacity: 1;
+}
+
+.analyze-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6) !important;
+}
+
+.custom-select:focus,
+.custom-input:focus {
+    outline: none;
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.drop-zone:hover {
+    border-color: #764ba2 !important;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+    transform: scale(1.02);
+}
+
+.image-card {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.image-card:hover {
+    transform: translateY(-15px) rotate(1deg);
+}
+
+#submitBtn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5) !important;
+}
+</style>
 {% endblock %}

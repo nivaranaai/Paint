@@ -116,7 +116,7 @@ class SAMColorizer:
         
         _, buffer = cv2.imencode('.jpg', image)
         img_base64 = base64.b64encode(buffer).decode('utf-8')
-        return f"data:image/jpeg;base64,{img_base64}"
+        return img_base64
 
 class ImageProcessor:
     """Utility class for image processing operations"""
