@@ -427,102 +427,248 @@ window.sendConfirmation = async function(confirmed, description = window.uploadA
 };
 
 function displayUploadRecommendations(replyData) {
-    // Hide the submit section after getting recommendations
-    const submitSection = document.getElementById('submitSection');
-    if (submitSection) {
-        submitSection.style.animation = 'fadeOut 0.5s ease-out';
-        setTimeout(() => {
-            submitSection.style.display = 'none';
-        }, 500);
-    }
-    
     // Parse the JSON string in reply
     const parsedReply = JSON.parse(replyData.reply);
     
-    // Add recommendations to each image card with creative styling
-    if (parsedReply.recommendations) {
-        parsedReply.recommendations.forEach((recommendation, index) => {
-            const imageCard = document.querySelector(`#imagePreviewContainer .col-lg-6:nth-child(${index + 1}) .card-body`);
-            if (imageCard) {
-                // Remove the confirmation button
-                const confirmDiv = imageCard.querySelector('.text-center');
-                if (confirmDiv) confirmDiv.remove();
+    // Create full-screen interactive paint experience
+    setTimeout(() => {
+        createInteractivePaintExperience(parsedReply);
+    }, 1000);
+}
+
+let currentRoomIndex = 0;
+
+function createInteractivePaintExperience(parsedReply) {
+    // Create full-screen overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'paintExperience';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        z-index: 3000;
+        overflow: hidden;
+        animation: slideInFromBottom 1s ease-out;
+    `;
+    
+    // Create header with navigation
+    const header = document.createElement('div');
+    header.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        padding: 20px 30px;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        z-index: 100;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    
+    header.innerHTML = `
+        <div>
+            <h2 style="margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
+                🎨 Interactive Paint Studio
+            </h2>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Room <span id="currentRoomNumber">1</span> of ${uploadedImages.length} • Click colors to paint walls instantly!</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="previousRoom()" id="prevBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">‹</button>
+                <button onclick="nextRoom()" id="nextBtn" style="background: #667eea; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#5a67d8';" onmouseout="this.style.background='#667eea';">›</button>
+            </div>
+            <button onclick="closePaintExperience()" style="background: #ff4757; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 18px; transition: all 0.3s ease;" onmouseover="this.style.background='#ff3742';" onmouseout="this.style.background='#ff4757';">×</button>
+        </div>
+    `;
+    
+    // Create main content area
+    const content = document.createElement('div');
+    content.id = 'studioContent';
+    content.style.cssText = `
+        position: absolute;
+        top: 90px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+    `;
+    
+    // Create room container
+    const roomContainer = document.createElement('div');
+    roomContainer.id = 'roomContainer';
+    roomContainer.style.cssText = `
+        width: 100%;
+        height: 100%;
+        max-width: 1200px;
+        display: flex;
+        background: white;
+        border-radius: 25px;
+        overflow: hidden;
+        box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+    `;
+    
+    content.appendChild(roomContainer);
+    overlay.appendChild(header);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    // Initialize with first room
+    window.paintStudioData = parsedReply;
+    showRoom(0);
+    updateNavigationButtons();
+}
+
+function showRoom(index) {
+    currentRoomIndex = index;
+    const container = document.getElementById('roomContainer');
+    const imageFile = uploadedImages[index];
+    const parsedReply = window.paintStudioData;
+    
+    // Get user preferences for this image
+    const emotion = document.getElementById(`emotion_${index}`)?.value || '';
+    const direction = document.getElementById(`direction_${index}`)?.value || '';
+    const roomtype = document.getElementById(`roomtype_${index}`)?.value || '';
+    const weather = document.getElementById('weather')?.value || '';
+    const locality = document.getElementById('locality')?.value || '';
+    const budget = document.getElementById('budget')?.value || '';
+    
+    // Get AI analysis
+    let roomAnalysis = '';
+    try {
+        const analysisData = JSON.parse(window.uploadAnalysisData.reply);
+        roomAnalysis = analysisData.reply[index]?.room_description || '';
+    } catch (e) {
+        roomAnalysis = 'AI analysis not available';
+    }
+    
+    // Get recommendations for this room
+    const recommendation = parsedReply.recommendations?.[index] || { colors: [] };
+    
+    container.innerHTML = `
+        <!-- Large Image Section -->
+        <div style="flex: 2; position: relative; background: #f8f9fa; display: flex; align-items: center; justify-content: center; min-height: 500px;">
+            <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
+                 style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);" 
+                 onclick="handleImageClick(event, ${index})">
+            
+            <!-- Room Label -->
+            <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600;">
+                Room ${index + 1} ${roomtype ? `• ${roomtype}` : ''}
+            </div>
+            
+            <!-- Status Indicator -->
+            <div id="coloringStatus_${index}" style="position: absolute; top: 20px; right: 20px; background: rgba(17, 153, 142, 0.95); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; display: none;">
+                🎨 Painting...
+            </div>
+            
+            <!-- Reset Button -->
+            <div style="position: absolute; bottom: 20px; right: 20px;">
+                <button onclick="resetRoomImage(${index})" 
+                        style="background: rgba(255, 107, 107, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);"
+                        onmouseover="this.style.background='rgba(255, 82, 82, 0.95)';" 
+                        onmouseout="this.style.background='rgba(255, 107, 107, 0.9)';">
+                    🔄 Reset
+                </button>
+            </div>
+        </div>
+        
+        <!-- Info Panel -->
+        <div style="flex: 1; padding: 30px; overflow-y: auto; background: white;">
+            <!-- User Preferences -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">📋 Your Preferences</h6>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    ${emotion ? `<span class="pref-tag">${emotion}</span>` : ''}
+                    ${direction ? `<span class="pref-tag">${direction} facing</span>` : ''}
+                    ${roomtype ? `<span class="pref-tag">${roomtype}</span>` : ''}
+                    ${weather ? `<span class="pref-tag">${weather}</span>` : ''}
+                    ${locality ? `<span class="pref-tag">${locality}</span>` : ''}
+                    ${budget ? `<span class="pref-tag">${budget} budget</span>` : ''}
+                </div>
+            </div>
+            
+            <!-- AI Analysis -->
+            <div class="mb-4">
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🤖 AI Analysis</h6>
+                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 20px; border-radius: 15px; border-left: 4px solid #667eea;">
+                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #555;">
+                        ${roomAnalysis}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Color Palette -->
+            <div>
+                <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px;">🎨 Paint Colors</h6>
+                <p style="color: #666; font-size: 13px; margin-bottom: 20px; font-style: italic;">Click any color below, then click on the image walls to paint!</p>
                 
-                // Add recommendations section with creative styling
-                const recSection = document.createElement('div');
-                recSection.className = 'mt-3 p-3 position-relative';
-                recSection.style.cssText = `
-                    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-                    border-radius: 15px;
-                    color: white;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-                    animation: slideInUp 0.6s ease-out;
-                `;
-                
-                let colorsHtml = '';
-                recommendation.colors.forEach(color => {
-                    colorsHtml += `
-                        <div class="mb-3 p-3 rounded" style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
-                            <div class="d-flex align-items-start">
-                                <div style="width:40px;height:40px;background:${color.hex};border:2px solid white;border-radius:8px;cursor:pointer;flex-shrink:0;box-shadow: 0 4px 15px rgba(0,0,0,0.2);" 
-                                     onclick="navigator.clipboard?.writeText('${color.hex}'); this.style.transform='scale(0.95)'; setTimeout(() => this.style.transform='scale(1)', 150);" 
-                                     title="${color.color} - Click to copy ${color.hex}"></div>
-                                <div class="ms-3 flex-grow-1">
-                                    <h6 class="mb-1" style="color: white; font-weight: 600;">${color.color}</h6>
-                                    <p class="mb-1" style="font-size: 12px; opacity: 0.9;"><strong>${color.hex}</strong> • ${color.finish} finish</p>
-                                    <p class="mb-0" style="font-size: 13px; opacity: 0.8; line-height: 1.4;">${color.rationale}</p>
+                <div class="color-palette" style="display: flex; flex-direction: column; gap: 15px;">
+                    ${recommendation.colors.map(color => `
+                        <div class="color-option" onclick="selectColor('${color.hex}', ${index})" 
+                             style="background: white; border: 2px solid #eee; border-radius: 15px; padding: 20px; cursor: pointer; transition: all 0.3s ease;"
+                             onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'; this.style.borderColor='${color.hex}';" 
+                             onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='none'; this.style.borderColor='#eee';">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <div style="width: 50px; height: 50px; background: ${color.hex}; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex-shrink: 0;"></div>
+                                <div style="flex: 1;">
+                                    <h6 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 600; color: #333;">${color.color}</h6>
+                                    <p style="margin: 0 0 8px 0; font-size: 13px; color: #666; font-weight: 500;">${color.hex} • ${color.finish} finish</p>
+                                    <p style="margin: 0; font-size: 12px; color: #888; line-height: 1.4;">${color.rationale}</p>
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
-                
-                recSection.innerHTML = `
-                    <div class="d-flex align-items-center mb-3">
-                        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px;">
-                            🎨
-                        </div>
-                        <h6 class="mb-0" style="color: white; font-weight: 600;">
-                            <i class="bi bi-palette me-2"></i>Perfect Paint Matches
-                        </h6>
-                    </div>
-                    ${colorsHtml}
-                    <div class="position-absolute" style="top: -10px; right: -10px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; opacity: 0.3;"></div>
-                `;
-                
-                imageCard.appendChild(recSection);
-                
-                // Add subtle success animation to the card
-                setTimeout(() => {
-                    imageCard.style.boxShadow = '0 0 30px rgba(17, 153, 142, 0.3)';
-                    setTimeout(() => {
-                        imageCard.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-                    }, 1000);
-                }, index * 200);
-                
-                // Add preparation tips if available
-                if (parsedReply.preparationtips && index === 0) {
-                    const tipsDiv = document.createElement('div');
-                    tipsDiv.className = 'mt-3 p-3';
-                    tipsDiv.style.cssText = `
-                        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-                        border-radius: 15px;
-                        color: #8b4513;
-                        animation: slideInUp 0.8s ease-out;
-                    `;
-                    tipsDiv.innerHTML = `
-                        <div class="d-flex align-items-start">
-                            <div style="font-size: 24px; margin-right: 12px;">💡</div>
-                            <div>
-                                <h6 class="mb-2" style="font-weight: 600;">Pro Tips</h6>
-                                <p class="mb-0" style="font-size: 14px; line-height: 1.5;">${parsedReply.preparationtips}</p>
-                            </div>
-                        </div>
-                    `;
-                    imageCard.appendChild(tipsDiv);
-                }
-            }
-        });
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update room number in header
+    document.getElementById('currentRoomNumber').textContent = index + 1;
+}
+
+function nextRoom() {
+    if (currentRoomIndex < uploadedImages.length - 1) {
+        showRoom(currentRoomIndex + 1);
+        updateNavigationButtons();
+    }
+}
+
+function previousRoom() {
+    if (currentRoomIndex > 0) {
+        showRoom(currentRoomIndex - 1);
+        updateNavigationButtons();
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    // Update button states
+    if (currentRoomIndex === 0) {
+        prevBtn.style.opacity = '0.5';
+        prevBtn.style.cursor = 'not-allowed';
+    } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+    }
+    
+    if (currentRoomIndex === uploadedImages.length - 1) {
+        nextBtn.style.opacity = '0.5';
+        nextBtn.style.cursor = 'not-allowed';
+    } else {
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
     }
 }
 
@@ -570,6 +716,239 @@ function replaceMainButton() {
             </div>
         `;
     }, 300);
+}
+
+// Global variables for colorizer sessions
+let colorizerSessions = {};
+let selectedColor = null;
+
+function closePaintExperience() {
+    const overlay = document.getElementById('paintExperience');
+    if (overlay) {
+        overlay.style.animation = 'slideOutToBottom 0.8s ease-out';
+        setTimeout(() => {
+            overlay.remove();
+            // Cleanup all colorizer sessions
+            Object.keys(colorizerSessions).forEach(sessionId => {
+                cleanupColorizerSession(sessionId);
+            });
+            colorizerSessions = {};
+        }, 800);
+    }
+}
+
+function selectColor(hexColor, roomIndex) {
+    selectedColor = hexColor;
+    
+    // Visual feedback - reset all options
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        option.style.borderColor = '#eee';
+        option.style.transform = 'translateX(0)';
+        option.style.boxShadow = 'none';
+        option.style.background = 'white';
+    });
+    
+    // Highlight selected option
+    const selectedOption = event.target.closest('.color-option');
+    selectedOption.style.borderColor = hexColor;
+    selectedOption.style.transform = 'translateX(10px)';
+    selectedOption.style.boxShadow = `0 12px 30px ${hexColor}30`;
+    selectedOption.style.background = `${hexColor}08`;
+    
+    // Show instruction
+    showColorInstruction(roomIndex, hexColor);
+}
+
+function showColorInstruction(roomIndex, hexColor) {
+    const existingInstruction = document.getElementById(`instruction_${roomIndex}`);
+    if (existingInstruction) existingInstruction.remove();
+    
+    const imageContainer = document.querySelector(`#roomImage_${roomIndex}`).parentElement;
+    const instruction = document.createElement('div');
+    instruction.id = `instruction_${roomIndex}`;
+    instruction.style.cssText = `
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${hexColor};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 30px;
+        font-size: 16px;
+        font-weight: 600;
+        animation: bounceIn 0.6s ease-out;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        backdrop-filter: blur(10px);
+        z-index: 10;
+    `;
+    instruction.innerHTML = '👆 Click on walls to paint them!';
+    imageContainer.appendChild(instruction);
+    
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+        if (instruction.parentElement) {
+            instruction.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => instruction.remove(), 500);
+        }
+    }, 4000);
+}
+
+async function handleImageClick(event, roomIndex) {
+    if (!selectedColor) {
+        alert('Please select a color first!');
+        return;
+    }
+    
+    const rect = event.target.getBoundingClientRect();
+    const x = Math.round(event.clientX - rect.left);
+    const y = Math.round(event.clientY - rect.top);
+    
+    // Scale coordinates to actual image size
+    const scaleX = event.target.naturalWidth / rect.width;
+    const scaleY = event.target.naturalHeight / rect.height;
+    const actualX = Math.round(x * scaleX);
+    const actualY = Math.round(y * scaleY);
+    
+    await paintImageAtPoint(roomIndex, actualX, actualY, selectedColor);
+}
+
+async function paintImageAtPoint(roomIndex, x, y, color) {
+    const statusDiv = document.getElementById(`coloringStatus_${roomIndex}`);
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    try {
+        statusDiv.style.display = 'block';
+        
+        // Initialize colorizer session if not exists
+        if (!colorizerSessions[roomIndex]) {
+            await initializeColorizerSession(roomIndex);
+        }
+        
+        const sessionId = colorizerSessions[roomIndex];
+        
+        // Call colorizer API
+        const response = await fetch('/api/colorizer/color/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId,
+                x: x,
+                y: y,
+                color: color
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update image with colored version
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+            
+            // Success animation
+            statusDiv.innerHTML = '✨ Painted!';
+            statusDiv.style.background = 'rgba(46, 204, 113, 0.9)';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+                statusDiv.innerHTML = '🎨 Painting...';
+                statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Coloring failed');
+        }
+        
+    } catch (error) {
+        console.error('Painting error:', error);
+        statusDiv.innerHTML = '⚠️ Error';
+        statusDiv.style.background = 'rgba(231, 76, 60, 0.9)';
+        
+        setTimeout(() => {
+            statusDiv.style.display = 'none';
+            statusDiv.innerHTML = '🎨 Painting...';
+            statusDiv.style.background = 'rgba(17, 153, 142, 0.9)';
+        }, 3000);
+    }
+}
+
+async function initializeColorizerSession(roomIndex) {
+    const imageFile = uploadedImages[roomIndex];
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await fetch('/api/colorizer/upload/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+        colorizerSessions[roomIndex] = data.session_id;
+        return data.session_id;
+    } else {
+        throw new Error(data.error || 'Failed to initialize colorizer session');
+    }
+}
+
+async function resetRoomImage(roomIndex) {
+    const sessionId = colorizerSessions[roomIndex];
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    
+    if (!sessionId) {
+        // Reset to original uploaded image
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/colorizer/reset/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            imageElement.src = `data:image/jpeg;base64,${data.image}`;
+        } else {
+            // Fallback to original
+            imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        }
+    } catch (error) {
+        console.error('Reset error:', error);
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+    }
+}
+
+async function cleanupColorizerSession(sessionId) {
+    try {
+        await fetch('/api/colorizer/cleanup/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+    } catch (error) {
+        console.error('Cleanup error:', error);
+    }
 }
 </script>
 
@@ -640,6 +1019,55 @@ function replaceMainButton() {
     100% {
         opacity: 0;
         transform: scale(0.8);
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.pref-tag {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+@keyframes slideOutToBottom {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
     }
 }
 
