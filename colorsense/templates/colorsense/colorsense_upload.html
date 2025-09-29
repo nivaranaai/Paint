@@ -117,8 +117,50 @@
           
           <!-- Analyze Button -->
           <div class="text-center mt-5" id="submitSection" style="display: none;">
-            <button class="btn btn-lg analyze-btn" onclick="submitAnalysis()" id="submitBtn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; border-radius: 30px; padding: 20px 50px; font-weight: 700; font-size: 1.2rem; box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4); transition: all 0.4s ease;">
-              <span>🏠 Analyse Your Home</span>
+            <button class="btn btn-lg analyze-btn premium-analyze-btn" onclick="submitAnalysis()" id="submitBtn" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+                border: none;
+                color: white;
+                border-radius: 25px;
+                padding: 25px 60px;
+                font-weight: 800;
+                font-size: 1.4rem;
+                box-shadow: 0 20px 40px rgba(102, 126, 234, 0.4), 0 10px 20px rgba(0,0,0,0.1);
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                position: relative;
+                overflow: hidden;
+                cursor: pointer;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                border: 3px solid transparent;
+            ">
+                <span style="position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 15px;">
+                    <span class="btn-icon" style="font-size: 32px; animation: float 3s ease-in-out infinite;">🏠</span>
+                    <span class="btn-text">Analyse Your Home</span>
+                    <span class="btn-sparkle" style="font-size: 20px; animation: sparkle 2s ease-in-out infinite 0.5s;">🔍</span>
+                </span>
+                <div class="premium-shimmer" style="
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+                    transition: left 0.6s ease;
+                    z-index: 2;
+                "></div>
+                <div class="btn-glow" style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 0;
+                    height: 0;
+                    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+                    border-radius: 50%;
+                    transform: translate(-50%, -50%);
+                    transition: all 0.3s ease;
+                    z-index: 1;
+                "></div>
             </button>
           </div>
         </div>
@@ -442,9 +484,69 @@ function showAnalysisOnCards(data) {
 
 function replaceAnalyzeButton() {
     const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerHTML = '✨ Generate My Perfect Colors ✨';
+    submitBtn.innerHTML = `
+        <span style="position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; gap: 15px;">
+            <span class="btn-icon" style="font-size: 28px; animation: float 3s ease-in-out infinite;">🎨</span>
+            <span class="btn-text" style="font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">Generate My Perfect Colors</span>
+            <span class="btn-sparkle" style="font-size: 20px; animation: sparkle 2s ease-in-out infinite;">✨</span>
+        </span>
+        <div class="premium-shimmer" style="
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s ease;
+            z-index: 2;
+        "></div>
+        <div class="btn-glow" style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+            z-index: 1;
+        "></div>
+    `;
     submitBtn.onclick = generatePaintRecommendations;
-    submitBtn.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%)';
+    submitBtn.style.cssText = `
+        background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #48dbfb 100%);
+        border: none;
+        color: white;
+        border-radius: 30px;
+        padding: 25px 60px;
+        font-weight: 700;
+        font-size: 1.3rem;
+        box-shadow: 0 20px 40px rgba(255, 107, 107, 0.4), 0 10px 20px rgba(0,0,0,0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        border: 3px solid transparent;
+        background-clip: padding-box;
+    `;
+    
+    // Add hover effects
+    submitBtn.onmouseover = function() {
+        this.style.transform = 'translateY(-8px) scale(1.08)';
+        this.style.boxShadow = '0 30px 60px rgba(255, 107, 107, 0.6), 0 15px 30px rgba(0,0,0,0.2)';
+        this.querySelector('.premium-shimmer').style.left = '100%';
+        this.querySelector('.btn-glow').style.width = '200px';
+        this.querySelector('.btn-glow').style.height = '200px';
+    };
+    
+    submitBtn.onmouseout = function() {
+        this.style.transform = 'translateY(0) scale(1)';
+        this.style.boxShadow = '0 20px 40px rgba(255, 107, 107, 0.4), 0 10px 20px rgba(0,0,0,0.1)';
+        this.querySelector('.premium-shimmer').style.left = '-100%';
+        this.querySelector('.btn-glow').style.width = '0';
+        this.querySelector('.btn-glow').style.height = '0';
+    };
 }
 
 async function generatePaintRecommendations() {
@@ -530,7 +632,8 @@ function showRoom(index) {
                 <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
                      style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: transform 0.3s ease;" 
                      onmouseover="this.style.transform='scale(1.02)';" 
-                     onmouseout="this.style.transform='scale(1)';">
+                     onmouseout="this.style.transform='scale(1)';" 
+                     onclick="paintImageAtPoint(event, ${index})">
                 
                 <!-- Room Label with Animation -->
                 <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; animation: slideInLeft 0.6s ease-out 0.3s both;">
@@ -659,8 +762,36 @@ function updateNavigationButtons() {
     nextBtn.style.opacity = currentRoomIndex === uploadedImages.length - 1 ? '0.5' : '1';
 }
 
-function closeStudio() {
-    document.getElementById('studioModal').style.display = 'none';
+async function closeStudio() {
+    // Cleanup colorizer sessions
+    for (const roomIndex in colorizerSessions) {
+        try {
+            await fetch('/api/colorizer/cleanup/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: colorizerSessions[roomIndex]
+                })
+            });
+        } catch (error) {
+            console.error('Failed to cleanup session:', error);
+        }
+    }
+    
+    // Clear sessions
+    colorizerSessions = {};
+    selectedColor = null;
+    
+    // Close modal with animation
+    const modal = document.getElementById('studioModal');
+    modal.style.animation = 'fadeOut 0.5s ease-out';
+    setTimeout(() => {
+        modal.style.display = 'none';
+        modal.style.animation = '';
+    }, 500);
 }
 
 function getCookie(name) {
@@ -681,6 +812,7 @@ function hideLoader() {
 // Store analysis data globally
 window.analysisData = null;
 let selectedColor = null;
+let colorizerSessions = {}; // Store colorizer session IDs for each room
 
 // Additional interactive functions
 function selectColor(hexColor, roomIndex) {
@@ -689,22 +821,84 @@ function selectColor(hexColor, roomIndex) {
     // Visual feedback - reset all options
     const colorOptions = document.querySelectorAll('.color-option');
     colorOptions.forEach(option => {
+        option.classList.remove('selected');
         option.style.borderColor = '#eee';
         option.style.transform = 'translateX(0)';
         option.style.boxShadow = 'none';
         option.style.background = 'white';
     });
     
-    // Highlight selected option
+    // Highlight selected option with premium effects
     const selectedOption = event.target.closest('.color-option');
+    selectedOption.classList.add('selected');
+    selectedOption.style.setProperty('--selected-color', hexColor);
+    selectedOption.style.setProperty('--selected-color-light', hexColor + '20');
     selectedOption.style.borderColor = hexColor;
-    selectedOption.style.transform = 'translateX(10px)';
-    selectedOption.style.boxShadow = `0 12px 30px ${hexColor}30`;
-    selectedOption.style.background = `${hexColor}08`;
+    selectedOption.style.transform = 'translateX(15px) scale(1.05)';
+    selectedOption.style.boxShadow = `0 15px 40px ${hexColor}40, 0 5px 15px rgba(0,0,0,0.1)`;
+    selectedOption.style.background = `linear-gradient(135deg, rgba(255,255,255,0.9) 0%, ${hexColor}15 100%)`;
     
-    // Show instruction
+    // Update cursor for all room images
+    const roomImages = document.querySelectorAll('[id^="roomImage_"]');
+    roomImages.forEach(img => {
+        img.classList.add('paint-cursor');
+        img.style.cursor = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="10" fill="${encodeURIComponent(hexColor)}" opacity="0.8"/><circle cx="16" cy="16" r="6" fill="white"/><text x="16" y="20" text-anchor="middle" fill="${encodeURIComponent(hexColor)}" font-size="12" font-weight="bold">🎨</text></svg>') 16 16, crosshair`;
+    });
+    
+    // Show enhanced instruction
     showColorInstruction(roomIndex, hexColor);
+    
+    // Add selection sound effect (visual feedback)
+    createSelectionRipple(selectedOption, hexColor);
 }
+
+function createSelectionRipple(element, color) {
+    const ripple = document.createElement('div');
+    const rect = element.getBoundingClientRect();
+    
+    ripple.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: ${color};
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 10;
+        animation: rippleEffect 0.8s ease-out;
+    `;
+    
+    element.style.position = 'relative';
+    element.appendChild(ripple);
+    
+    setTimeout(() => ripple.remove(), 800);
+}
+
+// Add ripple effect animation
+const rippleStyle = document.createElement('style');
+rippleStyle.textContent = `
+    @keyframes rippleEffect {
+        0% {
+            width: 0;
+            height: 0;
+            opacity: 0.3;
+        }
+        50% {
+            width: 100px;
+            height: 100px;
+            opacity: 0.1;
+        }
+        100% {
+            width: 200px;
+            height: 200px;
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(rippleStyle);
 
 function showColorInstruction(roomIndex, hexColor) {
     const existingInstruction = document.getElementById(`instruction_${roomIndex}`);
@@ -752,31 +946,253 @@ function resetRoomImage(roomIndex) {
     }
 }
 
-function saveRoomImage(roomIndex) {
-    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
-    if (imageElement) {
-        // Create download link
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const img = new Image();
-        
-        img.onload = function() {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            
-            // Download the image
-            const link = document.createElement('a');
-            link.download = `room_${roomIndex + 1}_painted.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        };
-        
-        img.src = imageElement.src;
-        
-        // Show save animation
-        imageElement.style.animation = 'bounceIn 0.6s ease-out';
+async function paintImageAtPoint(event, roomIndex) {
+    if (!selectedColor) {
+        showColorSelectionHint(roomIndex);
+        return;
     }
+    
+    const imageElement = event.target;
+    const rect = imageElement.getBoundingClientRect();
+    const x = Math.round((event.clientX - rect.left) * (imageElement.naturalWidth / rect.width));
+    const y = Math.round((event.clientY - rect.top) * (imageElement.naturalHeight / rect.height));
+    
+    // Show painting effect
+    showPaintingEffect(event.clientX, event.clientY, selectedColor);
+    
+    try {
+        // Initialize colorizer session if not exists
+        if (!colorizerSessions[roomIndex]) {
+            await initializeColorizerSession(roomIndex);
+        }
+        
+        // Apply color at point
+        const response = await fetch('/api/colorizer/color/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                session_id: colorizerSessions[roomIndex],
+                x: x,
+                y: y,
+                color: selectedColor
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update image with colored result
+            imageElement.src = 'data:image/png;base64,' + data.image;
+            showPaintSuccessAnimation(imageElement);
+        } else {
+            console.error('Color application failed:', data.error);
+            showPaintErrorAnimation(event.clientX, event.clientY);
+        }
+    } catch (error) {
+        console.error('Paint error:', error);
+        showPaintErrorAnimation(event.clientX, event.clientY);
+    }
+}
+
+async function initializeColorizerSession(roomIndex) {
+    const formData = new FormData();
+    formData.append('image', uploadedImages[roomIndex]);
+    
+    try {
+        const response = await fetch('/api/colorizer/upload/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            colorizerSessions[roomIndex] = data.session_id;
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (error) {
+        console.error('Failed to initialize colorizer session:', error);
+        throw error;
+    }
+}
+
+function showColorSelectionHint(roomIndex) {
+    const imageContainer = document.querySelector(`#roomImage_${roomIndex}`).parentElement;
+    const hint = document.createElement('div');
+    hint.style.cssText = `
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 107, 107, 0.95);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 25px;
+        font-size: 18px;
+        font-weight: 600;
+        animation: bounceIn 0.6s ease-out;
+        box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
+        backdrop-filter: blur(10px);
+        z-index: 20;
+        text-align: center;
+    `;
+    hint.innerHTML = '🎨<br>Please select a color first!';
+    imageContainer.appendChild(hint);
+    
+    setTimeout(() => {
+        hint.style.animation = 'fadeOut 0.5s ease-out';
+        setTimeout(() => hint.remove(), 500);
+    }, 2500);
+}
+
+function showPaintingEffect(x, y, color) {
+    const effect = document.createElement('div');
+    effect.style.cssText = `
+        position: fixed;
+        left: ${x - 25}px;
+        top: ${y - 25}px;
+        width: 50px;
+        height: 50px;
+        background: ${color};
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        animation: paintSplash 0.8s ease-out forwards;
+        box-shadow: 0 0 20px ${color};
+    `;
+    document.body.appendChild(effect);
+    
+    setTimeout(() => effect.remove(), 800);
+}
+
+function showPaintSuccessAnimation(imageElement) {
+    imageElement.style.filter = 'brightness(1.1) saturate(1.2)';
+    imageElement.style.transform = 'scale(1.02)';
+    
+    setTimeout(() => {
+        imageElement.style.filter = 'none';
+        imageElement.style.transform = 'scale(1)';
+    }, 300);
+}
+
+function showPaintErrorAnimation(x, y) {
+    const error = document.createElement('div');
+    error.style.cssText = `
+        position: fixed;
+        left: ${x - 15}px;
+        top: ${y - 15}px;
+        width: 30px;
+        height: 30px;
+        background: #ff4757;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        animation: errorShake 0.6s ease-out forwards;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+    `;
+    error.innerHTML = '✕';
+    document.body.appendChild(error);
+    
+    setTimeout(() => error.remove(), 600);
+}
+
+async function resetRoomImage(roomIndex) {
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    if (imageElement && colorizerSessions[roomIndex]) {
+        try {
+            const response = await fetch('/api/colorizer/reset/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: colorizerSessions[roomIndex]
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                imageElement.src = 'data:image/png;base64,' + data.image;
+                imageElement.style.animation = 'pulse 0.6s ease-out';
+            }
+        } catch (error) {
+            console.error('Reset failed:', error);
+            // Fallback to original image
+            imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+            imageElement.style.animation = 'pulse 0.6s ease-out';
+        }
+    } else {
+        // Fallback to original image
+        imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+        imageElement.style.animation = 'pulse 0.6s ease-out';
+    }
+}
+
+async function saveRoomImage(roomIndex) {
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    if (imageElement && colorizerSessions[roomIndex]) {
+        try {
+            const response = await fetch('/api/colorizer/save/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    session_id: colorizerSessions[roomIndex],
+                    filename: `room_${roomIndex + 1}_painted.png`
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success) {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `room_${roomIndex + 1}_painted.png`;
+                link.href = data.file_url;
+                link.click();
+                
+                imageElement.style.animation = 'bounceIn 0.6s ease-out';
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+            // Fallback to canvas download
+            fallbackSaveImage(imageElement, roomIndex);
+        }
+    } else {
+        fallbackSaveImage(imageElement, roomIndex);
+    }
+}
+
+function fallbackSaveImage(imageElement, roomIndex) {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        
+        const link = document.createElement('a');
+        link.download = `room_${roomIndex + 1}_painted.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    };
+    
+    img.src = imageElement.src;
+    imageElement.style.animation = 'bounceIn 0.6s ease-out';
 }
 </script>
 
@@ -925,6 +1341,24 @@ function saveRoomImage(roomIndex) {
     box-shadow: 0 20px 40px rgba(0,0,0,0.15);
 }
 
+.premium-analyze-btn:hover {
+    transform: translateY(-8px) scale(1.08) !important;
+    box-shadow: 0 30px 60px rgba(102, 126, 234, 0.6), 0 15px 30px rgba(0,0,0,0.2) !important;
+}
+
+.premium-analyze-btn:hover .premium-shimmer {
+    left: 100% !important;
+}
+
+.premium-analyze-btn:hover .btn-glow {
+    width: 200px !important;
+    height: 200px !important;
+}
+
+.premium-analyze-btn:active {
+    transform: translateY(-4px) scale(1.05) !important;
+}
+
 .analyze-btn:hover {
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 20px 40px rgba(102, 126, 234, 0.6);
@@ -932,6 +1366,71 @@ function saveRoomImage(roomIndex) {
 
 .color-option:hover .shimmer {
     animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes paintSplash {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5) rotate(180deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: scale(1); }
+    to { opacity: 0; transform: scale(0.8); }
+}
+
+/* Premium button hover effects */
+.premium-generate-btn:hover {
+    transform: translateY(-8px) scale(1.08) !important;
+    box-shadow: 0 30px 60px rgba(102, 126, 234, 0.6), 0 15px 30px rgba(0,0,0,0.2) !important;
+}
+
+.premium-generate-btn:hover .premium-shimmer {
+    left: 100% !important;
+}
+
+.premium-generate-btn:hover .btn-glow {
+    width: 200px !important;
+    height: 200px !important;
+}
+
+.premium-generate-btn:active {
+    transform: translateY(-4px) scale(1.05) !important;
+}
+
+/* Enhanced color selection feedback */
+.color-option.selected {
+    border-color: var(--selected-color) !important;
+    transform: translateX(15px) scale(1.05) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, var(--selected-color-light) 100%) !important;
+}
+
+/* Interactive image hover effects */
+#roomImage_0:hover, #roomImage_1:hover, #roomImage_2:hover, #roomImage_3:hover, #roomImage_4:hover,
+#roomImage_5:hover, #roomImage_6:hover, #roomImage_7:hover, #roomImage_8:hover, #roomImage_9:hover {
+    filter: brightness(1.1) contrast(1.1) !important;
+    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3) !important;
+}
+
+/* Paint cursor effect */
+.paint-cursor {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="8" fill="%23667eea" opacity="0.7"/><circle cx="16" cy="16" r="4" fill="white"/></svg>') 16 16, crosshair !important;
 }
 </style>
 {% endblock %}
