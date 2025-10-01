@@ -3,7 +3,11 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .agent import run_agent, summrise_input, paint_suggestion
-from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
+try:
+    from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
+except ImportError:
+    reconstruct_3d = None
+    pointcloud_to_textured_mesh = None
 from django.conf import settings
 import os
 import time
@@ -12,8 +16,20 @@ import json
 
 @ensure_csrf_cookie
 def index(request):
-    """Render the chat UI."""
+    """ColorSense upload page with Nivarana styling."""
+    return render(request, "colorsense/colorsense_upload.html")
+
+def nivarana_index(request):
+    """Nivarana.ai landing page."""
+    return render(request, "colorsense/nivarana_index.html")
+
+def index_original(request):
+    """Original chat UI."""
     return render(request, "colorsense/index.html")
+
+def test_static(request):
+    """Test static files."""
+    return render(request, "colorsense/test_static.html")
 
 @require_POST
 def agent_api(request):
@@ -86,12 +102,18 @@ def upload_images(request):
                 for chunk in f.chunks():
                     destination.write(chunk)
 
-        # Run reconstruction pipeline
-        ply_path = reconstruct_3d(folder)
-        mesh_path = pointcloud_to_textured_mesh(ply_path)
+        # Run reconstruction pipeline (if available)
+        if reconstruct_3d and pointcloud_to_textured_mesh:
+            ply_path = reconstruct_3d(folder)
+            mesh_path = pointcloud_to_textured_mesh(ply_path)
+        else:
+            mesh_path = None
 
-        # Return mesh URL
-        mesh_url = os.path.join(settings.MEDIA_URL, os.path.basename(mesh_path))
-        return render(request, "viewer.html", {"mesh_url": mesh_url})
+        # Return mesh URL or error
+        if mesh_path:
+            mesh_url = os.path.join(settings.MEDIA_URL, os.path.basename(mesh_path))
+            return render(request, "viewer.html", {"mesh_url": mesh_url})
+        else:
+            return render(request, "upload.html", {"error": "3D reconstruction not available"})
 
     return render(request, "upload.html")
