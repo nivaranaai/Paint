@@ -8,6 +8,7 @@ from django.conf import settings
 import os
 import time
 import pdb
+import json
 
 @ensure_csrf_cookie
 def index(request):
@@ -26,12 +27,13 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
+    provider = request.POST.get("provider", "groq")
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
     try:
         # Run the agent workflow
-        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs)
+        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs, provider=provider)
         print(result)
         return JsonResponse({
             "ok": True,
@@ -48,16 +50,25 @@ def confirm_suggestion(request):
     if confirm == "true":
         room_description = request.POST.get("room_description", "").strip()
         print(room_description)
-        images = []
+        images = request.POST.getlist("images") or []
         docs = []
         # Run the agent workflow
-        result = run_agent(user_text=room_description, image_uploads=images, doc_uploads=docs)
+        result = paint_suggestion(user_text=room_description, image_uploads=images, doc_uploads=docs)
+        #result = parse_response(result['reply'])
         print(result)
-        return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result.get("reply", "")})
+        return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result})
     else:
         return JsonResponse({"ok": False, "message": "Suggestion rejected."})
 
 
+def parse_response(response):
+    try:
+        recomendation = json.loads(response)
+        print(recomendation)
+        #breakpoint()
+        return recomendation
+    except json.JSONDecodeError:
+        return None
 
 def upload(request):
     return render(request, "colorsense/upload.html")
