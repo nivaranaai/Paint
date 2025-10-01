@@ -158,4 +158,4 @@ This project is licensed under the MIT License.
 ### Getting Help
 - Check the demo pages for working examples
 - Review API endpoint documentation
-- Ensure all dependencies are installed
+- Ensure all dependencies are installed..

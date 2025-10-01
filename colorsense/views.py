@@ -16,8 +16,20 @@ import json
 
 @ensure_csrf_cookie
 def index(request):
-    """Render the chat UI."""
+    """ColorSense upload page with Nivarana styling."""
+    return render(request, "colorsense/colorsense_upload.html")
+
+def nivarana_index(request):
+    """Nivarana.ai landing page."""
+    return render(request, "colorsense/nivarana_index.html")
+
+def index_original(request):
+    """Original chat UI."""
     return render(request, "colorsense/index.html")
+
+def test_static(request):
+    """Test static files."""
+    return render(request, "colorsense/test_static.html")
 
 @require_POST
 def agent_api(request):
@@ -31,12 +43,13 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
+    provider = request.POST.get("provider", "groq")
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
     try:
         # Run the agent workflow
-        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs)
+        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs, provider=provider)
         print(result)
         return JsonResponse({
             "ok": True,

@@ -11,6 +11,7 @@
   const micBtn = document.getElementById('mic');
   const voiceReplyToggle = document.getElementById('voice-reply');
   const hitlToggle = document.getElementById('hitl-toggle');
+  const providerSelect = document.getElementById('provider-select');
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -224,6 +225,9 @@
     //form.append('docs', description.docs);
     const csrftoken = getCookie('csrftoken');
 
+    const paint_suggestion = appendBubble('paint_suggestion', '');
+    showPaintRecommendationLoader(paint_suggestion);
+
     try {
         const resp = await fetch('/api/agent/confirm/', {
             method: 'POST',
@@ -233,19 +237,27 @@
 
         const data = await resp.json();
         if (data.ok) {
-            alert('Confirmation sent successfully.');
-            const paint_suggestion = appendBubble('paint_suggestion', '');
+            paint_suggestion.innerHTML = '';
             console.log(data.reply);
             console.log(data.reply.reply.recommendations);
-            // Display paint recommendations using the new function
-            if (data.reply && data.reply.reply.recommendations) {
-                data.reply.reply.recommendations.forEach(recommendation => {
-                    paint_suggestion.appendChild(createPaintRecommendation(recommendation));//createPaintRecommendation(recommendation)
+            // Parse the JSON response
+            let paintData;
+            try {
+                paintData = typeof data.reply.reply === 'string' ? JSON.parse(data.reply.reply) : data.reply.reply;
+            } catch (e) {
+                console.error('Failed to parse paint data:', e);
+                return;
+            }
+            
+            // Display paint recommendations
+            if (paintData && paintData.recommendations) {
+                paintData.recommendations.forEach(recommendation => {
+                    paint_suggestion.appendChild(createPaintRecommendation(recommendation));
                 });
             }
             
             // Display preparation tips
-            if (data.reply && data.reply.reply.preparation_tips) {
+            if (paintData && paintData.preparationtips) {
                 const tipsDiv = document.createElement("div");
                 tipsDiv.className = "preparation-tips";
                 tipsDiv.style.cssText = 'margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f0f8ff;';
@@ -256,7 +268,7 @@
                 tipsDiv.appendChild(tipsTitle);
             
                 const tipsText = document.createElement("p");
-                tipsText.textContent = data.reply.reply.preparation_tips;
+                tipsText.textContent = paintData.preparationtips;
                 tipsText.style.cssText = 'margin: 0; color: #555; line-height: 1.4;';
                 tipsDiv.appendChild(tipsText);
             
@@ -291,11 +303,13 @@
 
     const form = new FormData();
     form.append('message', msg);
+    form.append('provider', providerSelect.value);
     for (const f of images) form.append('images', f);
     for (const f of docs) form.append('docs', f);
     //form.append('confirm', false);
     const csrftoken = getCookie('csrftoken');
-    const bubble = appendBubble('assistant', 'Thinking…');
+    const bubble = appendBubble('assistant', '');
+    showChatLoader(bubble);
 
     try {
       const resp = await fetch('/api/agent/', {
@@ -350,6 +364,54 @@
     } catch (err) {
       bubble.textContent = `Network error: ${err}`;
     }
+  }
+
+  function showChatLoader(container) {
+    const events = [
+      { text: "Invoking ColorSense Agent....", delay: 0 },
+      { text: "ColorSense Agent Invoked...", delay: 1500 },
+      { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
+  }
+
+  function showPaintRecommendationLoader(container) {
+    const events = [
+      { text: "Generating Paint Recommendations....", delay: 0 },
+      { text: "Analyzing Color Palettes...", delay: 1000 },
+      { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
   }
 
   // Event listeners
