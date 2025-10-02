@@ -1,3 +1,4 @@
+
 """
 Django settings for paintme project.
 
@@ -18,6 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# File upload settings
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -26,10 +31,25 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-c*hm+q(u@c=wse!c%r3%gz1ieg+tfku48_okub@d=h)3k04e5x'
 OPENAI_API_KEY = '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'
+GROQ_API_KEY = ''
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+
+ALLOWED_HOSTS = ['localhost','paint-f478.onrender.com','paint-gxv5.onrender.com','www.nivaranaai.in','nivaranaai.in']
 
 
 # Application definition
@@ -59,7 +79,10 @@ ROOT_URLCONF = 'paintme.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'colorsense', 'colorizer_opencv', 'templates'),
+            os.path.join(BASE_DIR, 'colorsense', 'groq_api_impl', 'templates')
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -119,9 +142,20 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'colorsense', 'static'),
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Enable gzip compression for static files (optional, but good)
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}

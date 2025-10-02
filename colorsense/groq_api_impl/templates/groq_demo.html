@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groq API Demo</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .section h2 { margin-top: 0; color: #333; }
+        textarea, input[type="text"], input[type="file"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056b3; }
+        .response { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; padding: 15px; margin-top: 10px; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+        .loading { color: #007bff; font-style: italic; }
+        .error { color: #dc3545; background: #f8d7da; border-color: #f5c6cb; }
+        .success { color: #155724; background: #d4edda; border-color: #c3e6cb; }
+        .model-tag { background: #e9ecef; padding: 5px 10px; border-radius: 15px; font-size: 12px; margin: 2px; display: inline-block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Groq API Demo</h1>
+        <p>Test Groq's chat and vision capabilities</p>
+        
+        <div class="section">
+            <h2>📋 Available Models</h2>
+            <button onclick="loadModels()">Load Models</button>
+            <div id="models-response" class="response" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>💬 Chat Test</h2>
+            <textarea id="chat-message" placeholder="Enter your message..." rows="3"></textarea>
+            <input type="text" id="chat-model" placeholder="Model (optional, e.g., llama-3.1-8b-instant)">
+            <button onclick="sendChat()">Send Chat</button>
+            <div id="chat-response" class="response" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>👁️ Vision Analysis</h2>
+            <input type="text" id="vision-text" placeholder="What do you want to know about the image?">
+            <input type="file" id="vision-image" accept="image/*">
+            <input type="text" id="vision-model" placeholder="Model (optional, e.g., meta-llama/llama-4-scout-17b-16e-instruct)">
+            <button onclick="sendVision()">Analyze Image</button>
+            <div id="vision-response" class="response" style="display: none;"></div>
+        </div>
+        
+        <div class="section">
+            <h2>🎨 Paint Consultation</h2>
+            <textarea id="paint-description" placeholder="Describe your room..." rows="3"></textarea>
+            <input type="file" id="paint-image" accept="image/*">
+            <button onclick="sendPaintConsultation()">Get Paint Suggestions</button>
+            <div id="paint-response" class="response" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function showResponse(elementId, content, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `response ${isError ? 'error' : 'success'}`;
+            element.textContent = content;
+        }
+        
+        function showLoading(elementId) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = 'response loading';
+            element.textContent = 'Loading...';
+        }
+        
+        async function loadModels() {
+            showLoading('models-response');
+            try {
+                const response = await fetch('/api/groq/models/');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const modelsHtml = data.models.map(model => 
+                        `<span class="model-tag">${model}</span>`
+                    ).join('');
+                    document.getElementById('models-response').innerHTML = modelsHtml;
+                    document.getElementById('models-response').className = 'response success';
+                } else {
+                    showResponse('models-response', `Error: ${data.error}`, true);
+                }
+            } catch (error) {
+                showResponse('models-response', `Network error: ${error.message}`, true);
+            }
+        }
+        
+        async function sendChat() {
+            const message = document.getElementById('chat-message').value.trim();
+            const model = document.getElementById('chat-model').value.trim();
+            
+            if (!message) {
+                showResponse('chat-response', 'Please enter a message', true);
+                return;
+            }
+            
+            showLoading('chat-response');
+            
+            try {
+                const payload = { message };
+                if (model) payload.model = model;
+                
+                const response = await fetch('/api/groq/chat/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResponse('chat-response', `Model: ${data.model}\n\nResponse:\n${data.response}`);
+                } else {
+                    showResponse('chat-response', `Error: ${data.error}`, true);
+                }
+            } catch (error) {
+                showResponse('chat-response', `Network error: ${error.message}`, true);
+            }
+        }
+        
+        async function sendVision() {
+            const text = document.getElementById('vision-text').value.trim();
+            const imageFile = document.getElementById('vision-image').files[0];
+            const model = document.getElementById('vision-model').value.trim();
+            
+            if (!imageFile) {
+                showResponse('vision-response', 'Please select an image', true);
+                return;
+            }
+            
+            showLoading('vision-response');
+            
+            try {
+                const formData = new FormData();
+                formData.append('text', text || 'Describe this image');
+                formData.append('image', imageFile);
+                if (model) formData.append('model', model);
+                
+                const response = await fetch('/api/groq/vision/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResponse('vision-response', `Model: ${data.model}\n\nAnalysis:\n${data.response}`);
+                } else {
+                    showResponse('vision-response', `Error: ${data.error}`, true);
+                }
+            } catch (error) {
+                showResponse('vision-response', `Network error: ${error.message}`, true);
+            }
+        }
+        
+        async function sendPaintConsultation() {
+            const description = document.getElementById('paint-description').value.trim();
+            const imageFile = document.getElementById('paint-image').files[0];
+            
+            if (!description) {
+                showResponse('paint-response', 'Please enter a room description', true);
+                return;
+            }
+            
+            showLoading('paint-response');
+            
+            try {
+                const formData = new FormData();
+                formData.append('room_description', description);
+                if (imageFile) formData.append('image', imageFile);
+                
+                const response = await fetch('/api/groq/paint/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showResponse('paint-response', `Model: ${data.model}\n\nConsultation:\n${data.response}`);
+                } else {
+                    showResponse('paint-response', `Error: ${data.error}`, true);
+                }
+            } catch (error) {
+                showResponse('paint-response', `Network error: ${error.message}`, true);
+            }
+        }
+        
+        window.addEventListener('load', loadModels);
+    </script>
+</body>
+</html>

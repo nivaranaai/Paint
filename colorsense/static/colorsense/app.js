@@ -11,6 +11,7 @@
   const micBtn = document.getElementById('mic');
   const voiceReplyToggle = document.getElementById('voice-reply');
   const hitlToggle = document.getElementById('hitl-toggle');
+  const providerSelect = document.getElementById('provider-select');
 
   function getCookie(name) {
     const value = `; ${document.cookie}`;
@@ -51,6 +52,84 @@
     });
   }
 
+  function createPaintRecommendation(recommendation) {
+    const recDiv = document.createElement('div');
+    recDiv.className = 'paint-recommendation';
+    recDiv.style.cssText = 'margin: 10px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;';
+    
+    if (recommendation.image) {
+      const imageDesc = document.createElement('h3');
+      imageDesc.textContent = recommendation.image;
+      imageDesc.style.cssText = 'margin: 0 0 10px 0; color: #333; font-size: 16px;';
+      recDiv.appendChild(imageDesc);
+    }
+    
+    const colorsContainer = document.createElement('div');
+    colorsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 10px;';
+    
+    recommendation.colors.forEach(color => {
+      const colorDiv = document.createElement('div');
+      colorDiv.className = 'color-recommendation';
+      colorDiv.style.cssText = 'flex: 1; min-width: 200px; padding: 10px; border: 1px solid #ccc; border-radius: 5px; background: white;';
+      
+      const colorName = document.createElement('h4');
+      colorName.textContent = color.color;
+      colorName.style.cssText = 'margin: 0 0 5px 0; font-size: 14px; font-weight: bold;';
+      
+      const hexSwatch = document.createElement('div');
+      hexSwatch.style.cssText = `width: 40px; height: 40px; background: ${color.hex}; border: 1px solid #000; border-radius: 3px; margin: 5px 0; cursor: pointer;`;
+      hexSwatch.title = `Click to copy ${color.hex}`;
+      hexSwatch.addEventListener('click', () => {
+        navigator.clipboard?.writeText(color.hex).catch(() => {});
+      });
+      
+      const finish = document.createElement('p');
+      finish.textContent = `Finish: ${color.finish}`;
+      finish.style.cssText = 'margin: 5px 0; font-size: 12px; color: #666;';
+      
+      const rationale = document.createElement('p');
+      rationale.textContent = color.rationale;
+      rationale.style.cssText = 'margin: 5px 0; font-size: 12px; color: #555; line-height: 1.3;';
+      
+      colorDiv.appendChild(colorName);
+      colorDiv.appendChild(hexSwatch);
+      colorDiv.appendChild(finish);
+      colorDiv.appendChild(rationale);
+      
+      colorsContainer.appendChild(colorDiv);
+    });
+    
+    recDiv.appendChild(colorsContainer);
+    return recDiv;
+  }
+
+  function displayImageWithRecommendations(imageFile, recommendations) {
+    const container = document.createElement('div');
+    container.className = 'image-with-recommendations';
+    container.style.cssText = 'margin: 15px 0; padding: 15px; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa;';
+    
+    // Display the image
+    if (imageFile) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(imageFile);
+      img.style.cssText = 'max-width: 300px; max-height: 300px; border-radius: 5px; margin-bottom: 15px; display: block;';
+      container.appendChild(img);
+    }  
+    // Display recommendations for this image
+    if (recommendations && recommendations.length > 0) {
+      const recTitle = document.createElement('h3');
+      recTitle.textContent = 'Paint Recommendations:';
+      recTitle.style.cssText = 'margin: 0 0 10px 0; color: #333;';
+      container.appendChild(recTitle);
+      
+      recommendations.forEach(rec => {
+        container.appendChild(createPaintRecommendation(rec));
+      });
+    }
+    
+    return container;
+  }
+
   function speak(text) {
     if (!voiceReplyToggle.checked) return;
     if (!('speechSynthesis' in window)) return;
@@ -85,10 +164,39 @@
     const yesBtn = document.getElementById('yesBtn');
     const noBtn = document.getElementById('noBtn');
 
-    confirmText.textContent = description.reply;
+    // Clear old content (important so it doesn’t pile up each time)
+    confirmText.innerHTML = "";
+
+    let parsedreply;
+    try {
+        parsedreply = JSON.parse(description.reply);
+    } catch (e) {
+        console.error("Invalid JSON in description.reply:", description.reply);
+        parsedreply = { reply: [] };
+    }
+
+    const files = Array.from(description.images || []);
+    files.forEach(function(item, index) {
+        // Create and append image
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(item);
+        img.style.cssText =
+          'max-width: 300px; max-height: 300px; border-radius: 5px; margin: 10px 0; display: block;';
+        confirmText.appendChild(img);
+
+        // If we have a description, append it too
+        if (parsedreply.reply[index] && parsedreply.reply[index].room_description) {
+            const desc = document.createElement('p');
+            desc.textContent = parsedreply.reply[index].room_description;
+            desc.style.cssText = 'margin: 5px 0; font-size: 14px; color: #999;';
+            confirmText.appendChild(desc);
+        }
+    });
+
+    // Show modal
     confirmModal.style.display = 'flex'; // use flex for centering
 
-    // Cleanup previous listeners by cloning the buttons
+    // Cleanup previous listeners by cloning buttons
     const newYesBtn = yesBtn.cloneNode(true);
     const newNoBtn = noBtn.cloneNode(true);
     yesBtn.parentNode.replaceChild(newYesBtn, yesBtn);
@@ -97,25 +205,28 @@
     // Add fresh listeners
     newYesBtn.addEventListener('click', async () => {
         confirmModal.style.display = 'none';
-        // Send confirmation to the server
         await sendConfirmation(true, description);
     });
 
     newNoBtn.addEventListener('click', async () => {
         confirmModal.style.display = 'none';
-        // Send rejection to the server
         await sendConfirmation(false, description);
     });
-  }
+}
+
 
   async function sendConfirmation(confirmed, description) {
     const form = new FormData();
     form.append('confirm', confirmed);
     form.append('room_description', description.reply);
+    form.append('images', description.images);
     //form.append('style_preference', description.style_preference);
     //form.append('images', description.images);
     //form.append('docs', description.docs);
     const csrftoken = getCookie('csrftoken');
+
+    const paint_suggestion = appendBubble('paint_suggestion', '');
+    showPaintRecommendationLoader(paint_suggestion);
 
     try {
         const resp = await fetch('/api/agent/confirm/', {
@@ -126,10 +237,45 @@
 
         const data = await resp.json();
         if (data.ok) {
-            alert('Confirmation sent successfully.');
-            const paint_suggestion = appendBubble('paint_suggestion', data.reply);
+            paint_suggestion.innerHTML = '';
+            console.log(data.reply);
+            console.log(data.reply.reply.recommendations);
+            // Parse the JSON response
+            let paintData;
+            try {
+                paintData = typeof data.reply.reply === 'string' ? JSON.parse(data.reply.reply) : data.reply.reply;
+            } catch (e) {
+                console.error('Failed to parse paint data:', e);
+                return;
+            }
             
-            paint_suggestion.textContent = data.reply;
+            // Display paint recommendations
+            if (paintData && paintData.recommendations) {
+                paintData.recommendations.forEach(recommendation => {
+                    paint_suggestion.appendChild(createPaintRecommendation(recommendation));
+                });
+            }
+            
+            // Display preparation tips
+            if (paintData && paintData.preparationtips) {
+                const tipsDiv = document.createElement("div");
+                tipsDiv.className = "preparation-tips";
+                tipsDiv.style.cssText = 'margin: 15px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background: #f0f8ff;';
+                
+                const tipsTitle = document.createElement("h3");
+                tipsTitle.textContent = "Preparation Tips";
+                tipsTitle.style.cssText = 'margin: 0 0 10px 0; color: #333; font-size: 16px;';
+                tipsDiv.appendChild(tipsTitle);
+            
+                const tipsText = document.createElement("p");
+                tipsText.textContent = paintData.preparationtips;
+                tipsText.style.cssText = 'margin: 0; color: #555; line-height: 1.4;';
+                tipsDiv.appendChild(tipsText);
+            
+                paint_suggestion.appendChild(tipsDiv);
+            }
+         
+            //paint_suggestion.textContent = data.reply;
             //renderSwatches(data.swatches || []);
             //speak(data.reply || '');
         } else {
@@ -157,11 +303,13 @@
 
     const form = new FormData();
     form.append('message', msg);
+    form.append('provider', providerSelect.value);
     for (const f of images) form.append('images', f);
     for (const f of docs) form.append('docs', f);
     //form.append('confirm', false);
     const csrftoken = getCookie('csrftoken');
-    const bubble = appendBubble('assistant', 'Thinking…');
+    const bubble = appendBubble('assistant', '');
+    showChatLoader(bubble);
 
     try {
       const resp = await fetch('/api/agent/', {
@@ -180,8 +328,32 @@
       // If we have a suggestion ID, open the review window
       if (data.ok) {
         bubble.textContent = 'I have a suggestion for you. Please review it below.';
-        appendBubble('suggestion', data.reply);
-        //suggestion.textContent = data.reply;
+        //appendBubble('suggestion', data.reply);
+        
+        // Display uploaded images (without recommendations since /api/agent/ doesn't return them)
+        console.log(data.reply);
+        const parsedreply = JSON.parse(data.reply);
+        console.log(parsedreply.reply);
+        const files = Array.from(images);
+        files.forEach(function(item, index){
+          const suggetionContainer = document.createElement('div');
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(item);
+          img.style.cssText = 'max-width: 300px; max-height: 300px; border-radius: 5px; margin: 10px 0; display: block;';
+          suggetionContainer.appendChild(img);
+          console.log(parsedreply.reply[index]);
+          if(parsedreply.reply[index] && parsedreply.reply[index].room_description){
+            const desc = document.createElement('p');
+            desc.textContent = parsedreply.reply[index].room_description;
+            desc.style.cssText = 'margin: 5px 0; font-size: 14px; color: #999;';
+            suggetionContainer.appendChild(desc);
+          }
+          bubble.appendChild(suggetionContainer);
+        });
+        
+
+
+        data.images = images;
         confirmSuggetion(data);
       } else {
         // Direct response (no review needed)
@@ -192,6 +364,54 @@
     } catch (err) {
       bubble.textContent = `Network error: ${err}`;
     }
+  }
+
+  function showChatLoader(container) {
+    const events = [
+      { text: "Invoking ColorSense Agent....", delay: 0 },
+      { text: "ColorSense Agent Invoked...", delay: 1500 },
+      { text: "Fetching Rooms Analysis..", delay: 3000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
+  }
+
+  function showPaintRecommendationLoader(container) {
+    const events = [
+      { text: "Generating Paint Recommendations....", delay: 0 },
+      { text: "Analyzing Color Palettes...", delay: 1000 },
+      { text: "Finalizing Suggestions..", delay: 2000 }
+    ];
+    
+    let currentEventIndex = 0;
+    
+    function updateLoader() {
+      if (currentEventIndex < events.length) {
+        const event = events[currentEventIndex];
+        container.innerHTML = `<span class="loader-text">${event.text}</span>`;
+        currentEventIndex++;
+        
+        if (currentEventIndex < events.length) {
+          setTimeout(updateLoader, events[currentEventIndex].delay - events[currentEventIndex - 1].delay);
+        }
+      }
+    }
+    
+    updateLoader();
   }
 
   // Event listeners

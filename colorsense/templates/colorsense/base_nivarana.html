@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>{% block title %}Nivarana.ai - AI-Powered Solutions{% endblock %}</title>
+  
+  <!-- Logis Template Assets -->
+  <link href="{% static 'logis/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'logis/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'logis/vendor/aos/aos.css' %}" rel="stylesheet">
+  <link href="{% static 'logis/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'logis/css/main.css' %}" rel="stylesheet">
+</head>
+<body class="{% block body_class %}index-page{% endblock %}">
+  <header id="header" class="header d-flex align-items-center fixed-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+      <a href="{% url 'colorsense_index' %}" class="logo d-flex align-items-center me-auto">
+        <h1 class="sitename">Nivarana.ai</h1>
+      </a>
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="{% url 'colorsense_index' %}">Home</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+      <a class="btn-getstarted" href="#services">Get Started</a>
+    </div>
+  </header>
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer id="footer" class="footer dark-background">
+    <div class="container footer-top">
+      <div class="row gy-4">
+        <div class="col-lg-5 col-md-12 footer-about">
+          <a href="{% url 'colorsense_index' %}" class="logo d-flex align-items-center">
+            <span class="sitename">Nivarana.ai</span>
+          </a>
+          <p>Empowering businesses with cutting-edge AI solutions.</p>
+        </div>
+        <div class="col-lg-2 col-6 footer-links">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="{% url 'colorsense_app' %}">ColorSense</a></li>
+            <li><a href="{% url 'groq_demo' %}">Groq AI</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="container copyright text-center mt-4">
+      <p>© <strong class="px-1 sitename">Nivarana.ai</strong> All Rights Reserved</p>
+    </div>
+  </footer>
+
+  <script src="{% static 'logis/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'logis/vendor/aos/aos.js' %}"></script>
+  <script src="{% static 'logis/vendor/purecounter/purecounter_vanilla.js' %}"></script>
+  <script src="{% static 'logis/js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -3,16 +3,37 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .agent import run_agent, summrise_input, paint_suggestion
-from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
+from .interactive_painter import interactive_painter
+import uuid
+from .interactive_painter import interactive_painter
+import uuid
+try:
+    from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
+except ImportError:
+    reconstruct_3d = None
+    pointcloud_to_textured_mesh = None
 from django.conf import settings
 import os
 import time
 import pdb
+import json
 
 @ensure_csrf_cookie
 def index(request):
-    """Render the chat UI."""
+    """ColorSense upload page with Nivarana styling."""
+    return render(request, "colorsense/colorsense_upload.html")
+
+def nivarana_index(request):
+    """Nivarana.ai landing page."""
+    return render(request, "colorsense/nivarana_index.html")
+
+def index_original(request):
+    """Original chat UI."""
     return render(request, "colorsense/index.html")
+
+def test_static(request):
+    """Test static files."""
+    return render(request, "colorsense/test_static.html")
 
 @require_POST
 def agent_api(request):
@@ -26,12 +47,13 @@ def agent_api(request):
     message = request.POST.get("message", "").strip()
     images = request.FILES.getlist("images") or []
     docs = request.FILES.getlist("docs") or []
+    provider = request.POST.get("provider", "groq")
     if not message and not images and not docs:
         return HttpResponseBadRequest("Please provide a message, image(s), or document(s).")
 
     try:
         # Run the agent workflow
-        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs)
+        result = summrise_input(user_text=message, image_uploads=images, doc_uploads=docs, provider=provider)
         print(result)
         return JsonResponse({
             "ok": True,
@@ -48,16 +70,25 @@ def confirm_suggestion(request):
     if confirm == "true":
         room_description = request.POST.get("room_description", "").strip()
         print(room_description)
-        images = []
+        images = request.POST.getlist("images") or []
         docs = []
         # Run the agent workflow
-        result = run_agent(user_text=room_description, image_uploads=images, doc_uploads=docs)
+        result = paint_suggestion(user_text=room_description, image_uploads=images, doc_uploads=docs)
+        #result = parse_response(result['reply'])
         print(result)
-        return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result.get("reply", "")})
+        return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result})
     else:
         return JsonResponse({"ok": False, "message": "Suggestion rejected."})
 
 
+def parse_response(response):
+    try:
+        recomendation = json.loads(response)
+        print(recomendation)
+        #breakpoint()
+        return recomendation
+    except json.JSONDecodeError:
+        return None
 
 def upload(request):
     return render(request, "colorsense/upload.html")
@@ -75,12 +106,88 @@ def upload_images(request):
                 for chunk in f.chunks():
                     destination.write(chunk)
 
-        # Run reconstruction pipeline
-        ply_path = reconstruct_3d(folder)
-        mesh_path = pointcloud_to_textured_mesh(ply_path)
+        # Run reconstruction pipeline (if available)
+        if reconstruct_3d and pointcloud_to_textured_mesh:
+            ply_path = reconstruct_3d(folder)
+            mesh_path = pointcloud_to_textured_mesh(ply_path)
+        else:
+            mesh_path = None
 
-        # Return mesh URL
-        mesh_url = os.path.join(settings.MEDIA_URL, os.path.basename(mesh_path))
-        return render(request, "viewer.html", {"mesh_url": mesh_url})
+        # Return mesh URL or error
+        if mesh_path:
+            mesh_url = os.path.join(settings.MEDIA_URL, os.path.basename(mesh_path))
+            return render(request, "viewer.html", {"mesh_url": mesh_url})
+        else:
+            return render(request, "upload.html", {"error": "3D reconstruction not available"})
 
     return render(request, "upload.html")
+
+@require_POST
+def create_paint_session(request):
+    """Create interactive painting session"""
+    try:
+        image_data = request.POST.get('image_data')
+        session_id = str(uuid.uuid4())
+        
+        if interactive_painter.create_session(image_data, session_id):
+            return JsonResponse({
+                'success': True,
+                'session_id': session_id
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to create session'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+def paint_at_point(request):
+    """Paint at specific coordinates"""
+    try:
+        session_id = request.POST.get('session_id')
+        x = int(request.POST.get('x'))
+        y = int(request.POST.get('y'))
+        color = request.POST.get('color')
+        
+        result = interactive_painter.paint_at_point(session_id, x, y, color)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to paint'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+def reset_paint_session(request):
+    """Reset painting session"""
+    try:
+        session_id = request.POST.get('session_id')
+        result = interactive_painter.reset_session(session_id)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to reset'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def get_paint_session(request, session_id):
+    """Get current painted image"""
+    try:
+        result = interactive_painter.get_current_image(session_id)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Session not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

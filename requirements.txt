@@ -1,0 +1,20 @@
+# Django project requirements
+django
+numpy
+pillow
+opencv-python
+scikit-learn
+gunicorn
+whitenoise
+psycopg2-binary
+
+# SAM Colorizer requirements
+torch
+torchvision
+segment-anything
+matplotlib
+openai
+requests
+
+# Groq API requirements
+groq
