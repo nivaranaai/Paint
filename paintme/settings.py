@@ -44,7 +44,7 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['paint-f478.onrender.com','paint-gxv5.onrender.com']
 
 
 # Application definition
