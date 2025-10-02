@@ -1,6 +1,5 @@
 # Django project requirements
 django
-pycolmap
 numpy
 pillow
 opencv-python
