@@ -99,28 +99,52 @@ def query_pinecone(question, differentiators, top_k=3):
     return matches
 
 def upsert_pdf_to_pinecone(pdf_path, differentiators):
-    chunks = load_and_split_documents(pdf_path, chunk_size=500, chunk_overlap=50)
-    print(f"Found {len(chunks)} chunks")
+    import tempfile
+    import boto3
+    from urllib.parse import urlparse
     
-    vectors = []
-    for i, chunk in enumerate(chunks):
-        if not chunk.page_content.strip():
-            continue
-            
-        embedding = get_gemini_embedding(chunk.page_content.strip())
-        vectors.append({
-            "id": f"{os.path.basename(pdf_path)}_{i}",
-            "values": embedding,
-            "metadata": {
-                "text": chunk.page_content.strip(),
-                "pdf_path": os.path.basename(pdf_path),
-                "chunk_id": i
-            }
-        })
+    # Check if it's an S3 path
+    if pdf_path.startswith('s3://'):
+        # Parse S3 URL
+        parsed = urlparse(pdf_path)
+        bucket = parsed.netloc
+        key = parsed.path.lstrip('/')
+        
+        # Download from S3 to temp file
+        s3 = boto3.client('s3')
+        with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as temp_file:
+            s3.download_file(bucket, key, temp_file.name)
+            local_path = temp_file.name
+    else:
+        local_path = pdf_path
     
-    if vectors:
-        result = index.upsert(vectors=vectors)
-        print(f"✅ Stored {result['upserted_count']} chunks from {os.path.basename(pdf_path)}")
+    try:
+        chunks = load_and_split_documents(local_path, chunk_size=500, chunk_overlap=50)
+        print(f"Found {len(chunks)} chunks")
+        
+        vectors = []
+        for i, chunk in enumerate(chunks):
+            if not chunk.page_content.strip():
+                continue
+                
+            embedding = get_gemini_embedding(chunk.page_content.strip())
+            vectors.append({
+                "id": f"{os.path.basename(pdf_path)}_{i}",
+                "values": embedding,
+                "metadata": {
+                    "text": chunk.page_content.strip(),
+                    "pdf_path": os.path.basename(pdf_path),
+                    "chunk_id": i
+                }
+            })
+        
+        if vectors:
+            result = index.upsert(vectors=vectors)
+            print(f"✅ Stored {result['upserted_count']} chunks from {os.path.basename(pdf_path)}")
+    finally:
+        # Clean up temp file if S3 was used
+        if pdf_path.startswith('s3://') and os.path.exists(local_path):
+            os.unlink(local_path)
 
 def retrieve_relevant_chunks(question, differentiators, top_k=3):
     """

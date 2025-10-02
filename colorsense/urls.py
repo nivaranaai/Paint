@@ -12,6 +12,8 @@ urlpatterns = [
     path('api/agent/', views.agent_api, name='colorsense_agent_api'),
     path('upload_images/', views.upload_images, name='upload_images'),
     path('api/agent/confirm/', views.confirm_suggestion, name='confirm_suggestion'),
+    path('api/gemini/colors/', views.gemini_color_recommendations, name='gemini_colors'),
+    path('api/upsert-pdf/', views.upsert_pdf_api, name='upsert_pdf'),
     
     # Colorizer API endpoints
     path('api/colorizer/upload/', colorizer_views.upload_image_for_coloring, name='colorizer_upload'),

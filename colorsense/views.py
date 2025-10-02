@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import ensure_csrf_cookie
-from .agent import run_agent, summrise_input, paint_suggestion
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from .agent import run_agent, summrise_input, paint_suggestion, extract_hex_codes
 from .interactive_painter import interactive_painter
 import uuid
 from .interactive_painter import interactive_painter
@@ -191,3 +191,48 @@ def get_paint_session(request, session_id):
             return JsonResponse({'success': False, 'error': 'Session not found'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+@csrf_exempt
+@require_POST
+def gemini_color_recommendations(request):
+    """API endpoint for color recommendations using Gemini."""
+    try:
+        from rag.Vector import generate_answer_with_gemini
+        
+        data = json.loads(request.body)
+        room_description = data.get('room_description', '')
+        style_preferences = data.get('style_preferences', '')
+        
+        if not room_description:
+            return JsonResponse({'error': 'Room description is required'}, status=400)
+        
+        query = f"Recommend paint colors for: {room_description}. Style preferences: {style_preferences}"
+        context = "Provide 3-5 paint color recommendations with HEX codes, finishes, and rationales."
+        
+        answer = generate_answer_with_gemini(query, context)
+        swatches = extract_hex_codes(answer)
+        
+        return JsonResponse({
+            'recommendations': answer,
+            'swatches': swatches
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+@csrf_exempt
+@require_POST
+def upsert_pdf_api(request):
+    """API endpoint for upsert_pdf_to_pinecone method."""
+    try:
+        from rag.Vector import upsert_pdf_to_pinecone, differentiators
+        
+        data = json.loads(request.body)
+        pdf_path = data.get('pdf_path', '')
+        
+        if not pdf_path:
+            return JsonResponse({'error': 'pdf_path is required'}, status=400)
+        
+        upsert_pdf_to_pinecone(pdf_path, differentiators)
+        return JsonResponse({'message': 'PDF processed and upserted to Pinecone successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
