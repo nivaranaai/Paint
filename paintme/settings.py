@@ -1,3 +1,4 @@
+
 """
 Django settings for paintme project.
 
@@ -147,11 +148,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MIDDLEWARE = [
-    # ... other middleware
-    "whitenoise.middleware.WhiteNoiseMiddleware",
-    # ... other middleware
-]
 # Enable gzip compression for static files (optional, but good)
 STORAGES = {
     "staticfiles": {
