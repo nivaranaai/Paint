@@ -12,6 +12,7 @@
 </div>
 
 <section class="service-details section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 60px 0;">
+<section class="service-details section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 60px 0;">
   <div class="container">
     <!-- Animated Header -->
     <div class="text-center mb-5" style="animation: fadeInDown 1s ease-out;">
@@ -26,6 +27,12 @@
     <!-- Interactive Preferences Cards -->
     <div class="row mb-5" style="animation: slideInUp 1s ease-out 0.3s both;">
       <div class="col-12">
+        <div class="preferences-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
+          <div class="text-center mb-4">
+            <h3 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 2rem; margin-bottom: 10px;">
+              ⚙️ Your Preferences
+            </h3>
+            <p style="color: #666; font-size: 1.1rem;">Help us understand your style and requirements</p>
         <div class="preferences-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);">
           <div class="text-center mb-4">
             <h3 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 2rem; margin-bottom: 10px;">
@@ -116,6 +123,13 @@
     <!-- Magical Image Upload Section -->
     <div class="row" style="animation: slideInUp 1s ease-out 0.6s both;">
       <div class="col-12">
+        <div class="upload-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 50px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+          <div class="text-center mb-4">
+            <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 2s infinite;">📷</div>
+            <h3 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; font-size: 2rem; margin-bottom: 10px;">
+              Upload Your Room Images
+            </h3>
+            <p style="color: #666; font-size: 1.1rem;">Drag & drop up to 10 images or click to browse</p>
         <div class="upload-container" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border-radius: 30px; padding: 50px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
           <div class="text-center mb-4">
             <div style="font-size: 4rem; margin-bottom: 20px; animation: bounce 2s infinite;">📷</div>
@@ -275,16 +289,19 @@ function displayImagePreviews(files) {
         reader.onload = function(e) {
             const imageCard = createImageCard(e.target.result, index, file.name);
             container.appendChild(imageCard);
+            
+            if (container.children.length === files.length) {
+                document.getElementById('submitSection').style.display = 'block';
+            }
         };
         reader.readAsDataURL(file);
     });
-    
-    document.getElementById('submitSection').style.display = 'block';
 }
 
 function createImageCard(imageSrc, index, fileName) {
     const col = document.createElement('div');
     col.className = 'col-lg-6 col-xl-4';
+    col.style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`;
     col.style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`;
     
     col.innerHTML = `
@@ -314,10 +331,16 @@ function createImageCard(imageSrc, index, fileName) {
                 </div>
                 
                 <div class="row g-3">
+                
+                <div class="row g-3">
                     <div class="col-6">
                         <label style="color: #333; font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px;">🧭 Direction</label>
                         <select class="form-select custom-select" id="direction_${index}" style="border: 2px solid #e9ecef; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 500; transition: all 0.3s ease;" onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';" onblur="this.style.borderColor='#e9ecef'; this.style.boxShadow='none';">
                             <option value="">Direction</option>
+                            <option value="north">⬆️ North</option>
+                            <option value="south">⬇️ South</option>
+                            <option value="east">➡️ East</option>
+                            <option value="west">⬅️ West</option>
                             <option value="north">⬆️ North</option>
                             <option value="south">⬇️ South</option>
                             <option value="east">➡️ East</option>
@@ -387,8 +410,7 @@ async function submitAnalysis() {
     
     const form = new FormData();
     form.append('message', msg);
-    for (const f of images) form.append('images', f);
-    for (const f of docs) form.append('docs', f);
+    for (const f of uploadedImages) form.append('images', f);
     
     const csrftoken = getCookie('csrftoken');
     
@@ -402,15 +424,19 @@ async function submitAnalysis() {
         const data = await resp.json();
         hideLoader();
         
+        hideLoader();
+        
         if (data.ok) {
-            // Store data and show confirmation using app.js style
-            window.uploadAnalysisData = data;
-            window.uploadAnalysisData.images = images;
-            confirmSuggetion(window.uploadAnalysisData);
+            analysisData = data;
+            showAnalysisOnCards(data);
+            replaceAnalyzeButton();
         } else {
+            alert(`Error: ${data.error}`);
             alert(`Error: ${data.error}`);
         }
     } catch (err) {
+        hideLoader();
+        alert(`Network error: ${err}`);
         hideLoader();
         alert(`Network error: ${err}`);
     }
@@ -716,10 +742,10 @@ window.sendConfirmation = async function(confirmed, description = window.uploadA
 >>>>>>> scratch/bootstrap-improvement-v.1
     
     const form = new FormData();
-    form.append('confirm', confirmed);
-    form.append('room_description', description.reply);
-    if (description.images && description.images.length > 0) {
-        form.append('images', description.images[0]);
+    form.append('confirm', 'true');
+    form.append('room_description', analysisData.reply);
+    if (uploadedImages.length > 0) {
+        form.append('images', uploadedImages[0]);
     }
     const csrftoken = getCookie('csrftoken');
     
@@ -733,9 +759,13 @@ window.sendConfirmation = async function(confirmed, description = window.uploadA
         const data = await resp.json();
         hideLoader();
         
+        hideLoader();
+        
         if (data.ok) {
-            displayUploadRecommendations(data.reply);
+            paintRecommendations = JSON.parse(data.reply.reply);
+            openInteractiveStudio();
         } else {
+            alert(`Error: ${data.error}`);
             alert(`Error: ${data.error}`);
         }
     } catch (err) {
