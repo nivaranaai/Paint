@@ -3,6 +3,10 @@ from django.http import JsonResponse, HttpResponseBadRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .agent import run_agent, summrise_input, paint_suggestion
+from .interactive_painter import interactive_painter
+import uuid
+from .interactive_painter import interactive_painter
+import uuid
 try:
     from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
 except ImportError:
@@ -117,3 +121,73 @@ def upload_images(request):
             return render(request, "upload.html", {"error": "3D reconstruction not available"})
 
     return render(request, "upload.html")
+
+@require_POST
+def create_paint_session(request):
+    """Create interactive painting session"""
+    try:
+        image_data = request.POST.get('image_data')
+        session_id = str(uuid.uuid4())
+        
+        if interactive_painter.create_session(image_data, session_id):
+            return JsonResponse({
+                'success': True,
+                'session_id': session_id
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to create session'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+def paint_at_point(request):
+    """Paint at specific coordinates"""
+    try:
+        session_id = request.POST.get('session_id')
+        x = int(request.POST.get('x'))
+        y = int(request.POST.get('y'))
+        color = request.POST.get('color')
+        
+        result = interactive_painter.paint_at_point(session_id, x, y, color)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to paint'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@require_POST
+def reset_paint_session(request):
+    """Reset painting session"""
+    try:
+        session_id = request.POST.get('session_id')
+        result = interactive_painter.reset_session(session_id)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to reset'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def get_paint_session(request, session_id):
+    """Get current painted image"""
+    try:
+        result = interactive_painter.get_current_image(session_id)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                'image': result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Session not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})

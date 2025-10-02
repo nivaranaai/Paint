@@ -530,7 +530,8 @@ function showRoom(index) {
                 <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
                      style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: transform 0.3s ease;" 
                      onmouseover="this.style.transform='scale(1.02)';" 
-                     onmouseout="this.style.transform='scale(1)';">
+                     onmouseout="this.style.transform='scale(1)';" 
+                     onclick="paintAtClick(event, ${index})">
                 
                 <!-- Room Label with Animation -->
                 <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; animation: slideInLeft 0.6s ease-out 0.3s both;">
@@ -681,6 +682,7 @@ function hideLoader() {
 // Store analysis data globally
 window.analysisData = null;
 let selectedColor = null;
+let paintSessions = {}; // Store painting sessions
 
 // Additional interactive functions
 function selectColor(hexColor, roomIndex) {
@@ -776,6 +778,209 @@ function saveRoomImage(roomIndex) {
         
         // Show save animation
         imageElement.style.animation = 'bounceIn 0.6s ease-out';
+    }
+}
+
+// Interactive Painting Functions
+async function initializePaintSession(roomIndex) {
+    if (paintSessions[roomIndex]) return paintSessions[roomIndex];
+    
+    const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+    if (!imageElement) return null;
+    
+    try {
+        // Convert image to base64
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        return new Promise((resolve) => {
+            img.onload = async function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                const imageData = canvas.toDataURL();
+                
+                // Create paint session
+                const formData = new FormData();
+                formData.append('image_data', imageData);
+                
+                const response = await fetch('/api/paint/create/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    paintSessions[roomIndex] = result.session_id;
+                    resolve(result.session_id);
+                } else {
+                    console.error('Failed to create paint session:', result.error);
+                    resolve(null);
+                }
+            };
+            
+            img.crossOrigin = 'anonymous';
+            img.src = imageElement.src;
+        });
+    } catch (error) {
+        console.error('Error initializing paint session:', error);
+        return null;
+    }
+}
+
+async function paintAtClick(event, roomIndex) {
+    if (!selectedColor) {
+        showPaintingNotification('Please select a color first!', '#ff6b6b');
+        return;
+    }
+    
+    const imageElement = event.target;
+    const rect = imageElement.getBoundingClientRect();
+    
+    // Calculate click coordinates relative to image
+    const x = Math.round((event.clientX - rect.left) * (imageElement.naturalWidth / rect.width));
+    const y = Math.round((event.clientY - rect.top) * (imageElement.naturalHeight / rect.height));
+    
+    // Show painting effect
+    showPaintingEffect(event.clientX, event.clientY, selectedColor);
+    
+    try {
+        // Initialize session if needed
+        let sessionId = paintSessions[roomIndex];
+        if (!sessionId) {
+            sessionId = await initializePaintSession(roomIndex);
+            if (!sessionId) {
+                showPaintingNotification('Failed to initialize painting session', '#ff6b6b');
+                return;
+            }
+        }
+        
+        // Paint at point
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        formData.append('x', x);
+        formData.append('y', y);
+        formData.append('color', selectedColor);
+        
+        const response = await fetch('/api/paint/point/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            // Update image with painted result
+            imageElement.src = result.image;
+            showPaintingNotification('🎨 Painted successfully!', selectedColor);
+        } else {
+            showPaintingNotification('Failed to paint: ' + result.error, '#ff6b6b');
+        }
+    } catch (error) {
+        console.error('Painting error:', error);
+        showPaintingNotification('Network error occurred', '#ff6b6b');
+    }
+}
+
+function showPaintingEffect(x, y, color) {
+    const effect = document.createElement('div');
+    effect.style.cssText = `
+        position: fixed;
+        left: ${x - 25}px;
+        top: ${y - 25}px;
+        width: 50px;
+        height: 50px;
+        background: ${color};
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9999;
+        animation: paintSplash 0.8s ease-out forwards;
+        box-shadow: 0 0 20px ${color};
+    `;
+    
+    document.body.appendChild(effect);
+    
+    setTimeout(() => {
+        if (effect.parentElement) {
+            effect.remove();
+        }
+    }, 800);
+}
+
+function showPaintingNotification(message, color) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 30px;
+        background: ${color};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 25px;
+        font-weight: 600;
+        z-index: 9999;
+        animation: slideInRight 0.5s ease-out;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOutRight 0.5s ease-out';
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 500);
+    }, 3000);
+}
+
+async function resetRoomImage(roomIndex) {
+    const sessionId = paintSessions[roomIndex];
+    if (!sessionId) {
+        // If no session, just reset to original
+        const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+        if (imageElement) {
+            imageElement.src = URL.createObjectURL(uploadedImages[roomIndex]);
+            imageElement.style.animation = 'pulse 0.6s ease-out';
+        }
+        return;
+    }
+    
+    try {
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        
+        const response = await fetch('/api/paint/reset/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            const imageElement = document.getElementById(`roomImage_${roomIndex}`);
+            if (imageElement) {
+                imageElement.src = result.image;
+                imageElement.style.animation = 'pulse 0.6s ease-out';
+            }
+            showPaintingNotification('🔄 Reset to original!', '#2ecc71');
+        } else {
+            showPaintingNotification('Failed to reset: ' + result.error, '#ff6b6b');
+        }
+    } catch (error) {
+        console.error('Reset error:', error);
+        showPaintingNotification('Network error occurred', '#ff6b6b');
     }
 }
 </script>
@@ -932,6 +1137,43 @@ function saveRoomImage(roomIndex) {
 
 .color-option:hover .shimmer {
     animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes paintSplash {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes slideOutRight {
+    0% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
 }
 </style>
 {% endblock %}

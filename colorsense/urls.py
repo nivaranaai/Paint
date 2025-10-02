@@ -28,4 +28,10 @@ urlpatterns = [
     path('api/groq/paint/', groq_views.groq_paint_consultation, name='groq_paint'),
     path('api/groq/models/', groq_views.groq_models, name='groq_models'),
     path('groq/demo/', groq_views.groq_demo, name='groq_demo'),
+    
+    # Interactive painting endpoints
+    path('api/paint/create/', views.create_paint_session, name='create_paint_session'),
+    path('api/paint/point/', views.paint_at_point, name='paint_at_point'),
+    path('api/paint/reset/', views.reset_paint_session, name='reset_paint_session'),
+    path('api/paint/session/<str:session_id>/', views.get_paint_session, name='get_paint_session'),
 ]

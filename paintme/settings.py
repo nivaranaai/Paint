@@ -19,6 +19,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# File upload settings
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,6 +31,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-c*hm+q(u@c=wse!c%r3%gz1ieg+tfku48_okub@d=h)3k04e5x'
 OPENAI_API_KEY = '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'
+GROQ_API_KEY = ''
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -44,7 +49,7 @@ LOGGING = {
     },
 }
 
-ALLOWED_HOSTS = ['paint-f478.onrender.com','paint-gxv5.onrender.com','www.nivaranaai.in','nivaranaai.in']
+ALLOWED_HOSTS = ['localhost','paint-f478.onrender.com','paint-gxv5.onrender.com','www.nivaranaai.in','nivaranaai.in']
 
 
 # Application definition
