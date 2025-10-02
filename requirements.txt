@@ -4,6 +4,9 @@ numpy
 pillow
 opencv-python
 scikit-learn
+gunicorn
+whitenoise
+psycopg2-binary
 
 # SAM Colorizer requirements
 torch
