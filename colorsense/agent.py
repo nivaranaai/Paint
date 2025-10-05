@@ -198,7 +198,7 @@ def summrise_input(user_text: str, image_uploads: List[Any], doc_uploads: List[A
     #     "reply": reply,
     #     "swatches": []
     # }
-    summary_request = f"Please elaborate and summarize the following room description: {user_text}" + "retrun response in json format {'reply':{image: string,room_description:string}}"
+    summary_request = f"Analyze the image carefully and describe all visible elements in a structured and detailed manner " + "retrun response in json format {'reply':{image: string,room_description:string}}"
     return run_agent(user_text=summary_request, image_uploads=image_uploads, doc_uploads=doc_uploads)
 
 

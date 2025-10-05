@@ -71,6 +71,8 @@ def confirm_suggestion(request):
         room_description = request.POST.get("room_description", "").strip()
         print(room_description)
         images = request.POST.getlist("images") or []
+        userPrefs = request.POST.getlist("userPrefs","")
+        room_description = room_description + " " + " ".join(userPrefs)
         docs = []
         # Run the agent workflow
         result = paint_suggestion(user_text=room_description, image_uploads=images, doc_uploads=docs)

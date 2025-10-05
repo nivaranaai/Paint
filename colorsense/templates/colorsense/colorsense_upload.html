@@ -449,10 +449,12 @@ function replaceAnalyzeButton() {
 
 async function generatePaintRecommendations() {
     showLoader('Generating paint recommendations...');
-    
+    const msg = buildMessageFromPreferences();
     const form = new FormData();
+    form.append('userPrefs', msg)
     form.append('confirm', 'true');
     form.append('room_description', analysisData.reply);
+
     if (uploadedImages.length > 0) {
         form.append('images', uploadedImages[0]);
     }
