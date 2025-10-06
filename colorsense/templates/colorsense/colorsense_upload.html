@@ -131,7 +131,7 @@
 <div id="studioModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:3000;">
   <div style="position: relative; width: 100%; height: 100%;">
     <!-- Studio Header -->
-    <div style="position: absolute; top: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px 30px; z-index: 100; display: flex; justify-content: space-between; align-items: center;">
+    <div class="studio-header" style="position: absolute; top: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px 30px; z-index: 100; display: flex; justify-content: space-between; align-items: center;">
       <div>
         <h2 style="margin: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;">
           🎨 Interactive Paint Studio
@@ -146,8 +146,10 @@
     </div>
     
     <!-- Studio Content -->
-    <div id="studioContent" style="position: absolute; top: 90px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; padding: 30px;">
-      <div id="roomContainer" style="width: 100%; height: 100%; max-width: 1200px; display: flex; background: white; border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.2);"></div>
+    <div id="studioContent" style="position: absolute; top: 90px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; padding: 20px;">
+      <div id="roomContainer" style="width: 100%; height: 100%; max-width: 1400px; display: flex; background: white; border-radius: 25px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.2); flex-direction: row;">
+        <!-- Mobile responsive layout -->
+      </div>
     </div>
   </div>
 </div>
@@ -526,44 +528,61 @@ function showRoom(index) {
     
     setTimeout(() => {
         container.innerHTML = `
-            <div style="flex: 2; position: relative; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; min-height: 500px; animation: roomImageSlide 0.8s ease-out;">
-                <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
-                     style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: transform 0.3s ease;" 
-                     onmouseover="this.style.transform='scale(1.02)';" 
-                     onmouseout="this.style.transform='scale(1)';" 
-                     onclick="paintAtClick(event, ${index})">
+            <div id="imageContainer_${index}" style="flex: 2; position: relative; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); display: flex; align-items: center; justify-content: center; min-height: 500px; animation: roomImageSlide 0.8s ease-out; overflow: hidden;">
+                <div id="imageWrapper_${index}" class="image-wrapper" style="position: relative; transition: transform 0.3s ease; transform-origin: center center;">
+                    <img id="roomImage_${index}" src="${URL.createObjectURL(imageFile)}" 
+                         style="max-width: 100%; max-height: 100%; object-fit: contain; cursor: crosshair; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); transition: all 0.3s ease; user-select: none;" 
+                         onclick="paintAtClick(event, ${index})" 
+                         draggable="false">
+                </div>
                 
                 <!-- Room Label with Animation -->
-                <div style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; animation: slideInLeft 0.6s ease-out 0.3s both;">
+                <div class="room-label" style="position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 20px; border-radius: 25px; font-size: 14px; font-weight: 600; animation: slideInLeft 0.6s ease-out 0.3s both; z-index: 10;">
                     Room ${index + 1} ${roomtype ? `• ${roomtype}` : ''}
                 </div>
                 
-                <!-- Interactive Elements -->
-                <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; animation: slideInRight 0.6s ease-out 0.4s both;">
-                    <div style="background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 8px 15px; font-size: 12px; font-weight: 600; color: #667eea;">
-                        🎨 Interactive Mode
+                <!-- Zoom Controls -->
+                <div class="zoom-controls" style="position: absolute; top: 20px; right: 20px; z-index: 10;">
+                    <button class="zoom-btn" onclick="zoomOut(${index})">
+                        −
+                    </button>
+                    <div class="zoom-display">
+                        <span id="zoomLevel_${index}">100%</span>
                     </div>
+                    <button class="zoom-btn" onclick="zoomIn(${index})">
+                        +
+                    </button>
+                    <button class="zoom-btn" onclick="resetZoom(${index})" style="background: #764ba2 !important;" 
+                            onmouseover="this.style.background='#6a4190';" 
+                            onmouseout="this.style.background='#764ba2';">
+                        ⌂
+                    </button>
+                </div>
+                
+                <!-- Interactive Mode Badge -->
+                <div class="interactive-badge" style="position: absolute; top: 80px; right: 20px; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border-radius: 20px; padding: 8px 15px; font-size: 12px; font-weight: 600; color: #667eea; animation: slideInRight 0.6s ease-out 0.6s both; z-index: 10;">
+                    🎨 Interactive Mode
                 </div>
                 
                 <!-- Floating Action Buttons -->
-                <div style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; animation: slideInUp 0.6s ease-out 0.5s both;">
+                <div class="floating-actions" style="position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; animation: slideInUp 0.6s ease-out 0.5s both; z-index: 10;">
                     <button onclick="resetRoomImage(${index})" 
-                            style="background: rgba(255, 107, 107, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                            onmouseover="this.style.background='rgba(255, 82, 82, 0.95)'; this.style.transform='scale(1.05)';" 
-                            onmouseout="this.style.background='rgba(255, 107, 107, 0.9)'; this.style.transform='scale(1)';">
+                            style="background: rgba(255, 107, 107, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);"
+                            onmouseover="this.style.background='rgba(255, 82, 82, 0.95)'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(255, 82, 82, 0.4)';" 
+                            onmouseout="this.style.background='rgba(255, 107, 107, 0.9)'; this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(255, 107, 107, 0.3)';">
                         🔄 Reset
                     </button>
                     <button onclick="saveRoomImage(${index})" 
-                            style="background: rgba(46, 204, 113, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);"
-                            onmouseover="this.style.background='rgba(39, 174, 96, 0.95)'; this.style.transform='scale(1.05)';" 
-                            onmouseout="this.style.background='rgba(46, 204, 113, 0.9)'; this.style.transform='scale(1)';">
+                            style="background: rgba(46, 204, 113, 0.9); color: white; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px); box-shadow: 0 8px 25px rgba(46, 204, 113, 0.3);"
+                            onmouseover="this.style.background='rgba(39, 174, 96, 0.95)'; this.style.transform='scale(1.05)'; this.style.boxShadow='0 12px 35px rgba(39, 174, 96, 0.4)';" 
+                            onmouseout="this.style.background='rgba(46, 204, 113, 0.9)'; this.style.transform='scale(1)'; this.style.boxShadow='0 8px 25px rgba(46, 204, 113, 0.3)';">
                         💾 Save
                     </button>
                 </div>
             </div>
             
             <!-- Enhanced Info Panel -->
-            <div style="flex: 1; padding: 30px; overflow-y: auto; background: white; animation: slideInRight 0.8s ease-out;">
+            <div class="info-panel" style="flex: 1; min-width: 350px; max-width: 400px; padding: 30px; overflow-y: auto; background: white; animation: slideInRight 0.8s ease-out; border-left: 1px solid #f0f0f0;">
                 <!-- User Preferences with Enhanced Design -->
                 <div class="mb-4" style="animation: fadeInUp 0.6s ease-out 0.2s both;">
                     <h6 style="color: #333; font-weight: 700; margin-bottom: 15px; font-size: 16px; display: flex; align-items: center; gap: 10px;">
@@ -633,6 +652,11 @@ function showRoom(index) {
         container.style.transform = 'scale(1)';
         container.style.transition = 'all 0.5s ease';
         
+        // Initialize zoom functionality
+        setTimeout(() => {
+            initializeZoom(index);
+        }, 300);
+        
     }, 200);
     
     document.getElementById('currentRoomNumber').textContent = index + 1;
@@ -683,6 +707,10 @@ function hideLoader() {
 window.analysisData = null;
 let selectedColor = null;
 let paintSessions = {}; // Store painting sessions
+let zoomLevels = {}; // Store zoom levels for each room
+let panOffsets = {}; // Store pan offsets for each room
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
 
 // Additional interactive functions
 function selectColor(hexColor, roomIndex) {
@@ -943,6 +971,123 @@ function showPaintingNotification(message, color) {
     }, 3000);
 }
 
+// Zoom Functions
+function initializeZoom(roomIndex) {
+    if (!zoomLevels[roomIndex]) {
+        zoomLevels[roomIndex] = 1;
+        panOffsets[roomIndex] = { x: 0, y: 0 };
+    }
+    
+    const imageWrapper = document.getElementById(`imageWrapper_${roomIndex}`);
+    const imageContainer = document.getElementById(`imageContainer_${roomIndex}`);
+    
+    if (imageWrapper && imageContainer) {
+        // Add pan functionality
+        imageWrapper.addEventListener('mousedown', (e) => startPan(e, roomIndex));
+        imageContainer.addEventListener('mousemove', (e) => handlePan(e, roomIndex));
+        imageContainer.addEventListener('mouseup', () => endPan());
+        imageContainer.addEventListener('mouseleave', () => endPan());
+        
+        // Add wheel zoom
+        imageContainer.addEventListener('wheel', (e) => handleWheelZoom(e, roomIndex));
+        
+        // Touch events for mobile
+        imageWrapper.addEventListener('touchstart', (e) => startPan(e.touches[0], roomIndex));
+        imageContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handlePan(e.touches[0], roomIndex);
+        });
+        imageContainer.addEventListener('touchend', () => endPan());
+    }
+}
+
+function zoomIn(roomIndex) {
+    const currentZoom = zoomLevels[roomIndex] || 1;
+    const newZoom = Math.min(currentZoom * 1.2, 5); // Max 5x zoom
+    setZoom(roomIndex, newZoom);
+}
+
+function zoomOut(roomIndex) {
+    const currentZoom = zoomLevels[roomIndex] || 1;
+    const newZoom = Math.max(currentZoom / 1.2, 0.5); // Min 0.5x zoom
+    setZoom(roomIndex, newZoom);
+}
+
+function resetZoom(roomIndex) {
+    setZoom(roomIndex, 1);
+    panOffsets[roomIndex] = { x: 0, y: 0 };
+    updateImageTransform(roomIndex);
+}
+
+function setZoom(roomIndex, zoom) {
+    zoomLevels[roomIndex] = zoom;
+    updateImageTransform(roomIndex);
+    
+    const zoomDisplay = document.getElementById(`zoomLevel_${roomIndex}`);
+    if (zoomDisplay) {
+        zoomDisplay.textContent = Math.round(zoom * 100) + '%';
+    }
+}
+
+function updateImageTransform(roomIndex) {
+    const imageWrapper = document.getElementById(`imageWrapper_${roomIndex}`);
+    if (imageWrapper) {
+        const zoom = zoomLevels[roomIndex] || 1;
+        const offset = panOffsets[roomIndex] || { x: 0, y: 0 };
+        
+        imageWrapper.style.transform = `scale(${zoom}) translate(${offset.x}px, ${offset.y}px)`;
+    }
+}
+
+function handleWheelZoom(e, roomIndex) {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const currentZoom = zoomLevels[roomIndex] || 1;
+    const newZoom = Math.min(Math.max(currentZoom * delta, 0.5), 5);
+    setZoom(roomIndex, newZoom);
+}
+
+function startPan(e, roomIndex) {
+    const zoom = zoomLevels[roomIndex] || 1;
+    if (zoom <= 1) return; // Only allow panning when zoomed in
+    
+    isDragging = true;
+    dragStart.x = e.clientX;
+    dragStart.y = e.clientY;
+    
+    const imageWrapper = document.getElementById(`imageWrapper_${roomIndex}`);
+    if (imageWrapper) {
+        imageWrapper.style.cursor = 'grabbing';
+    }
+}
+
+function handlePan(e, roomIndex) {
+    if (!isDragging) return;
+    
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+    
+    const currentOffset = panOffsets[roomIndex] || { x: 0, y: 0 };
+    panOffsets[roomIndex] = {
+        x: currentOffset.x + deltaX,
+        y: currentOffset.y + deltaY
+    };
+    
+    updateImageTransform(roomIndex);
+    
+    dragStart.x = e.clientX;
+    dragStart.y = e.clientY;
+}
+
+function endPan() {
+    isDragging = false;
+    
+    // Reset cursor for all image wrappers
+    document.querySelectorAll('[id^="imageWrapper_"]').forEach(wrapper => {
+        wrapper.style.cursor = 'grab';
+    });
+}
+
 async function resetRoomImage(roomIndex) {
     const sessionId = paintSessions[roomIndex];
     if (!sessionId) {
@@ -1174,6 +1319,193 @@ async function resetRoomImage(roomIndex) {
         opacity: 0;
         transform: scale(0.8);
     }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    #roomContainer {
+        flex-direction: column !important;
+        max-width: 100% !important;
+    }
+    
+    #roomContainer > div:first-child {
+        flex: 3 !important;
+        min-height: 60vh !important;
+    }
+    
+    #roomContainer > div:last-child {
+        flex: 1 !important;
+        min-width: auto !important;
+        max-width: none !important;
+        max-height: 40vh !important;
+        border-left: none !important;
+        border-top: 1px solid #f0f0f0 !important;
+    }
+    
+    .studio-header {
+        padding: 15px 20px !important;
+    }
+    
+    .studio-header h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    .zoom-controls {
+        top: 15px !important;
+        right: 15px !important;
+        gap: 5px !important;
+    }
+    
+    .zoom-controls button {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 14px !important;
+    }
+    
+    .floating-actions {
+        bottom: 15px !important;
+        right: 15px !important;
+        gap: 8px !important;
+    }
+    
+    .floating-actions button {
+        padding: 10px 15px !important;
+        font-size: 12px !important;
+    }
+    
+    .room-label {
+        top: 15px !important;
+        left: 15px !important;
+        padding: 8px 15px !important;
+        font-size: 12px !important;
+    }
+    
+    .interactive-badge {
+        top: 60px !important;
+        right: 15px !important;
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #studioContent {
+        padding: 10px !important;
+    }
+    
+    #roomContainer {
+        border-radius: 15px !important;
+    }
+    
+    .info-panel {
+        padding: 20px !important;
+    }
+    
+    .color-palette {
+        gap: 10px !important;
+    }
+    
+    .color-option {
+        padding: 15px !important;
+    }
+    
+    .color-option h6 {
+        font-size: 14px !important;
+    }
+    
+    .color-option p {
+        font-size: 11px !important;
+    }
+}
+
+/* Enhanced Zoom Controls */
+.zoom-controls {
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(10px) !important;
+    border-radius: 20px !important;
+    padding: 8px !important;
+    display: flex !important;
+    gap: 8px !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    animation: slideInRight 0.6s ease-out 0.4s both !important;
+}
+
+.zoom-btn {
+    background: #667eea !important;
+    color: white !important;
+    border: none !important;
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.zoom-btn:hover {
+    background: #5a67d8 !important;
+    transform: scale(1.1) !important;
+}
+
+.zoom-display {
+    background: rgba(102, 126, 234, 0.1) !important;
+    color: #667eea !important;
+    padding: 8px 12px !important;
+    border-radius: 15px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    min-width: 50px !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* Enhanced Image Wrapper */
+.image-wrapper {
+    cursor: grab !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+}
+
+.image-wrapper:active {
+    cursor: grabbing !important;
+}
+
+/* Premium Loading Animation */
+@keyframes premiumPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+    }
+}
+
+.premium-loading {
+    animation: premiumPulse 2s infinite !important;
+}
+
+/* Smooth Transitions */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button, .color-option, .image-card {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 </style>
 {% endblock %}
