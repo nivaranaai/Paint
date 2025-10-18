@@ -29,7 +29,7 @@ def retrieve(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         query = data['query']
-        context = retrieve_relevant_chunks(query, differentiators)
+        context = retrieve_relevant_chunks(query, differentiators) #will fetch data from pinecone
         answer = generate_answer_with_gemini(query, context)
         
         return JsonResponse({'answer': answer, 'context': context})
