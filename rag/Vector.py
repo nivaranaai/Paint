@@ -1,5 +1,5 @@
 import os
-import pinecone
+from pinecone import Pinecone
 from langchain.document_loaders import PyPDFLoader
 import requests
 import json
@@ -7,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Gemini API setup
-GEMINI_API_KEY = ""
+GEMINI_API_KEY = "AIzaSyBoaHFZHWCJG4xMkVzfKTxqGZ_ybXRKH8A"
 GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=" + GEMINI_API_KEY
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -18,14 +18,15 @@ def get_gemini_embedding(text):
     return embedding
 
 # Initialize Pinecone (new style)
-pc = pinecone.Pinecone(api_key="")
+pc = Pinecone(api_key="pcsk_UCz7B_SzsJLZUbzTnK9g6T72yLpTxPZYoJNLzY2WTNBMNoAQr5hxsQaxVSQ6Ev82pgGMw")
 index_name = "house-color-prediction-demo1"
+from pinecone import ServerlessSpec
 if index_name not in [idx.name for idx in pc.list_indexes()]:
     pc.create_index(
         name=index_name,
         dimension=384,  # all-MiniLM-L6-v2 outputs 384-dimensional vectors
         metric="cosine",
-        spec=pinecone.ServerlessSpec(
+        spec=ServerlessSpec(
             cloud="aws",  # or "gcp" if using Google Cloud
             region="us-east-1"  # match your Pinecone project region
         )
@@ -159,6 +160,7 @@ def retrieve_relevant_chunks(question, differentiators, top_k=3):
         list: List of matching document texts.
     """
     matches = query_pinecone(question, differentiators, top_k=top_k)
+    print("question:", question);
     results = []
     for match in matches:
         results.append({
@@ -203,15 +205,16 @@ def generate_answer_with_gemini(query, context, model_name="gemini-2.5-flash-pre
                 return f"API unavailable. Context summary: {str(context)[:200]}..."
 
 # Example usage:
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     pdf_folder = "C:\\Users\\HP\\Desktop\\Delete"
     for pdf_file in os.listdir(pdf_folder):
         if pdf_file.lower().endswith(".pdf"):
             upsert_pdf_to_pinecone(os.path.join(pdf_folder, pdf_file), differentiators)
-    print("PDFs processed and upserted to Pinecone vector DB.")
+    print("PDFs processed and upserted to Pinecone vector DB.")"""
 
+def generate_answer_based_on_user_query(query):
     question = input("Enter your paint-related question (or type 'exit' to quit): ")
-    user_query = "Summarise the document."
-    context = retrieve_relevant_chunks(question, differentiators, top_k=3)
+    user_query = "What would be the preference for Tropical climate?"
+    context = retrieve_relevant_chunks(query, differentiators, top_k=3)
     final_answer = generate_answer_with_gemini(user_query, context)
     print(final_answer)
