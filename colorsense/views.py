@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponseBadRequest, HttpRequest
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from .agent import run_agent, summrise_input, paint_suggestion, extract_hex_codes
@@ -69,13 +69,19 @@ def confirm_suggestion(request):
     confirm = request.POST.get("confirm", "false").strip().lower()
     if confirm == "true":
         room_description = request.POST.get("room_description", "").strip()
+        print("Room description:")
         print(room_description)
         images = request.POST.getlist("images") or []
         docs = []
+        
+        # Call retrieve function from rag.views
+        from rag.views import retrieve
+        from django.http import HttpRequest
+        rag_response = retrieve(room_description)
+        room_description = room_description + str(rag_response['answer']) + str(rag_response['context']) + " consider above information in paint suggestion"
         # Run the agent workflow
         result = paint_suggestion(user_text=room_description, image_uploads=images, doc_uploads=docs)
         #result = parse_response(result['reply'])
-        print(result)
         return JsonResponse({"ok": True, "message": "Suggestion confirmed.", "reply": result})
     else:
         return JsonResponse({"ok": False, "message": "Suggestion rejected."})

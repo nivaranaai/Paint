@@ -7,7 +7,7 @@ from sentence_transformers import SentenceTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Gemini API setup
-GEMINI_API_KEY = "AIzaSyBoaHFZHWCJG4xMkVzfKTxqGZ_ybXRKH8A"
+GEMINI_API_KEY = "AIzaSyDaPgIsJEU8F3xpIdHb72TdyDl-dsj4Z8A"
 GEMINI_EMBED_URL = "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent?key=" + GEMINI_API_KEY
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -175,7 +175,7 @@ def generate_answer_with_gemini(query, context, model_name="gemini-2.5-flash-pre
     import json
     import time
     
-    GEMINI_API_KEY = ""
+    GEMINI_API_KEY = "AIzaSyDaPgIsJEU8F3xpIdHb72TdyDl-dsj4Z8A"
     api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
 
     payload = {
