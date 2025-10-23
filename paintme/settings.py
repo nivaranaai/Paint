@@ -31,7 +31,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-c*hm+q(u@c=wse!c%r3%gz1ieg+tfku48_okub@d=h)3k04e5x'
 OPENAI_API_KEY = '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'
-GROQ_API_KEY = ''
+GROQ_API_KEY = ''  # Set your GROQ API key here or in environment variables
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

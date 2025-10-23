@@ -36,6 +36,14 @@ urlpatterns = [
     path('api/paint/reset/', views.reset_paint_session, name='reset_paint_session'),
     path('api/paint/session/<str:session_id>/', views.get_paint_session, name='get_paint_session'),
     
+    # Enhanced Paint Studio endpoints
+    path('api/enhanced-paint/create/', views.create_enhanced_session, name='enhanced_paint_create'),
+    path('api/enhanced-paint/switch/', views.switch_carousel_image, name='enhanced_paint_switch'),
+    path('api/enhanced-paint/preview/', views.preview_enhanced_segment, name='enhanced_paint_preview'),
+    path('api/enhanced-paint/apply/', views.apply_enhanced_color, name='enhanced_paint_apply'),
+    path('api/enhanced-paint/reset/', views.reset_enhanced_image, name='enhanced_paint_reset'),
+    path('enhanced-studio/', views.enhanced_studio_demo, name='enhanced_studio_demo'),
+    
     # SAM Studio API
     path('api/sam-studio/create/', sam_studio_views.create_studio_session, name='sam_studio_create'),
     path('api/sam-studio/apply-color/', sam_studio_views.apply_color, name='sam_studio_apply'),

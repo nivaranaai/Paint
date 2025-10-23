@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Interactive Paint Studio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            color: white;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .canvas-section {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .carousel-header {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .carousel-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .carousel-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .carousel-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .carousel-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .image-counter {
+            font-weight: 600;
+            margin: 0 1rem;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            min-height: 500px;
+        }
+        
+        #canvas {
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: crosshair;
+        }
+        
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 8px;
+        }
+        
+        .preview-overlay.active {
+            opacity: 0.8;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+        }
+        
+        .panel-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .panel-section:last-child {
+            border-bottom: none;
+        }
+        
+        .panel-section h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .recommendation-card {
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .recommendation-card.selected {
+            border-color: #4facfe;
+            background: linear-gradient(145deg, #e3f2fd, #f0f8ff);
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .color-name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 0.25rem;
+        }
+        
+        .color-hex {
+            font-size: 0.7rem;
+            color: #888;
+            font-family: monospace;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        select, input[type=\"range\"] {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #fa709a, #fee140);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 1000;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sam-status {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #856404;
+        }
+        
+        .sam-status.available {
+            background: rgba(40, 167, 69, 0.1);
+            border-color: #28a745;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 Enhanced Interactive Paint Studio</h1>
+        <p>AI-powered segmentation meets intelligent paint recommendations</p>
+    </div>
+    
+    <div class="main-container">
+        <div class="canvas-section">
+            <div class="carousel-header">
+                <h3>🖼️ Image Carousel</h3>
+                <div class="carousel-controls">
+                    <button class="carousel-btn" id="prevBtn" onclick="switchImage('prev')">← Previous</button>
+                    <span class="image-counter" id="imageCounter">1 / 1</span>
+                    <button class="carousel-btn" id="nextBtn" onclick="switchImage('next')">Next →</button>
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="canvas"></canvas>
+                <canvas id="previewCanvas" class="preview-overlay"></canvas>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing with AI...</p>
+                </div>
+            </div>
+            <div class="status-bar">
+                <span id="imageInfo">No images loaded</span>
+                <span id="actionCount">Actions: 0</span>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="panel-section">
+                <h3>🎨 Paint Recommendations</h3>
+                <div id="samStatus" class="sam-status">
+                    Initializing AI segmentation...
+                </div>
+                <div class="recommendations-grid" id="recommendationsGrid">
+                    <!-- Dynamic recommendations will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>⚙️ Paint Settings</h3>
+                <div class="control-group">
+                    <label for="blendMode">Blend Mode:</label>
+                    <select id="blendMode">
+                        <option value="normal">Normal</option>
+                        <option value="overlay">Overlay</option>
+                        <option value="multiply">Multiply</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="opacity">Opacity: <span id="opacityValue">70%</span></label>
+                    <input type="range" id="opacity" min="10" max="100" value="70">
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>🔧 Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="undoBtn" onclick="undoLastAction()" disabled>↶ Undo</button>
+                    <button class="btn btn-danger" onclick="resetCurrentImage()">🔄 Reset Image</button>
+                    <button class="btn btn-secondary" onclick="downloadImage()">💾 Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSession = null;
+        let canvas = document.getElementById('canvas');
+        let previewCanvas = document.getElementById('previewCanvas');
+        let ctx = canvas.getContext('2d');
+        let previewCtx = previewCanvas.getContext('2d');
+        let selectedColor = null;
+        let actionCount = 0;
+        let originalImageSize = { width: 0, height: 0 };
+        let canvasScale = 1;
+        let previewTimeout;
+
+        // Initialize with sample data (replace with actual data from paint recommendations)
+        const sampleData = {
+            images: [
+                'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k='
+            ],
+            recommendations: [
+                { name: 'Ocean Blue', hex: '#2196F3', description: 'Calming ocean-inspired blue' },
+                { name: 'Sunset Orange', hex: '#FF9800', description: 'Warm sunset orange' },
+                { name: 'Forest Green', hex: '#4CAF50', description: 'Natural forest green' },
+                { name: 'Lavender', hex: '#9C27B0', description: 'Soothing lavender purple' }
+            ]
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateOpacityDisplay();
+            
+            // Initialize with sample data (replace with actual data)
+            initializeStudio(sampleData);
+        });
+
+        function setupEventListeners() {
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseleave', hidePreview);
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            document.getElementById('opacity').addEventListener('input', updateOpacityDisplay);
+        }
+
+        async function initializeStudio(data) {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/enhanced-paint/create/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        images: data.images,
+                        recommendations: data.recommendations
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSession = result.session_id;
+                    loadImageToCanvas(result.image);
+                    loadRecommendations(result.recommendations);
+                    updateImageCounter(result.index + 1, result.total);
+                    updateSamStatus(result.sam_available);
+                    actionCount = result.history_count || 0;
+                    updateActionCount();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Initialization failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadImageToCanvas(base64Image) {
+            const img = new Image();
+            img.onload = function() {
+                originalImageSize.width = img.width;
+                originalImageSize.height = img.height;
+                
+                const container = canvas.parentElement;
+                const maxWidth = container.clientWidth - 40;
+                const maxHeight = container.clientHeight - 40;
+                
+                let displayWidth = img.width;
+                let displayHeight = img.height;
+                
+                if (displayWidth > maxWidth || displayHeight > maxHeight) {
+                    const scale = Math.min(maxWidth / displayWidth, maxHeight / displayHeight);
+                    displayWidth = Math.floor(displayWidth * scale);
+                    displayHeight = Math.floor(displayHeight * scale);
+                    canvasScale = scale;
+                } else {
+                    canvasScale = 1;
+                }
+                
+                canvas.width = displayWidth;
+                canvas.height = displayHeight;
+                previewCanvas.width = displayWidth;
+                previewCanvas.height = displayHeight;
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+                
+                previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                
+                document.getElementById('imageInfo').textContent = 
+                    `Image: ${originalImageSize.width} × ${originalImageSize.height}px`;
+            };
+            img.src = 'data:image/jpeg;base64,' + base64Image;
+        }
+
+        function loadRecommendations(recommendations) {
+            const grid = document.getElementById('recommendationsGrid');
+            grid.innerHTML = '';
+            
+            recommendations.forEach((rec, index) => {
+                const card = document.createElement('div');
+                card.className = 'recommendation-card';
+                card.onclick = () => selectRecommendation(rec, card);
+                
+                card.innerHTML = `
+                    <div class="color-preview" style="background-color: ${rec.hex}"></div>
+                    <div class="color-name">${rec.name}</div>
+                    <div class="color-hex">${rec.hex}</div>
+                `;
+                
+                grid.appendChild(card);
+                
+                // Select first recommendation by default
+                if (index === 0) {
+                    selectRecommendation(rec, card);
+                }
+            });
+        }
+
+        function selectRecommendation(recommendation, cardElement) {
+            // Remove previous selection
+            document.querySelectorAll('.recommendation-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Select new recommendation
+            cardElement.classList.add('selected');
+            selectedColor = recommendation.hex;
+        }
+
+        async function switchImage(direction) {
+            if (!currentSession) return;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/enhanced-paint/switch/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSession,
+                        direction: direction
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadImageToCanvas(result.image);
+                    updateImageCounter(result.index + 1, result.total);
+                    actionCount = result.history_count || 0;
+                    updateActionCount();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Switch failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleMouseMove(e) {
+            if (!currentSession || !selectedColor) return;
+            
+            clearTimeout(previewTimeout);
+            
+            previewTimeout = setTimeout(async () => {
+                const rect = canvas.getBoundingClientRect();
+                const canvasX = e.clientX - rect.left;
+                const canvasY = e.clientY - rect.top;
+                
+                const x = Math.floor(canvasX / canvasScale);
+                const y = Math.floor(canvasY / canvasScale);
+                
+                try {
+                    const response = await fetch('/api/enhanced-paint/preview/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            session_id: currentSession,
+                            x: x,
+                            y: y
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showPreview(result.preview);
+                    }
+                } catch (error) {
+                    console.error('Preview error:', error);
+                }
+            }, 100);
+        }
+
+        function showPreview(base64Image) {
+            const img = new Image();
+            img.onload = function() {
+                previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+                previewCtx.drawImage(img, 0, 0);
+                previewCanvas.classList.add('active');
+            };
+            img.src = 'data:image/jpeg;base64,' + base64Image;
+        }
+
+        function hidePreview() {
+            previewCanvas.classList.remove('active');
+            previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+            clearTimeout(previewTimeout);
+        }
+
+        async function handleCanvasClick(e) {
+            if (!currentSession || !selectedColor) {
+                alert('Please select a paint recommendation first!');
+                return;
+            }
+            
+            hidePreview();
+            showLoading(true);
+            
+            const rect = canvas.getBoundingClientRect();
+            const canvasX = e.clientX - rect.left;
+            const canvasY = e.clientY - rect.top;
+            
+            const x = Math.floor(canvasX / canvasScale);
+            const y = Math.floor(canvasY / canvasScale);
+            
+            try {
+                const response = await fetch('/api/enhanced-paint/apply/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSession,
+                        x: x,
+                        y: y,
+                        color: selectedColor,
+                        blend_mode: document.getElementById('blendMode').value,
+                        opacity: document.getElementById('opacity').value / 100
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadImageToCanvas(result.image);
+                    actionCount = result.history_count || 0;
+                    updateActionCount();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Color application failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function resetCurrentImage() {
+            if (!currentSession || !confirm('Reset current image?')) return;
+            
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/enhanced-paint/reset/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSession })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadImageToCanvas(result.image);
+                    actionCount = 0;
+                    updateActionCount();
+                }
+            } catch (error) {
+                alert('Reset failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function downloadImage() {
+            if (!canvas) return;
+            
+            const link = document.createElement('a');
+            link.download = 'enhanced-paint-studio-artwork.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function updateImageCounter(current, total) {
+            document.getElementById('imageCounter').textContent = `${current} / ${total}`;
+            
+            document.getElementById('prevBtn').disabled = current === 1;
+            document.getElementById('nextBtn').disabled = current === total;
+        }
+
+        function updateSamStatus(available) {
+            const statusEl = document.getElementById('samStatus');
+            if (available) {
+                statusEl.textContent = '✓ AI Segmentation Active';
+                statusEl.classList.add('available');
+            } else {
+                statusEl.textContent = '⚠ Using Fallback Segmentation';
+                statusEl.classList.remove('available');
+            }
+        }
+
+        function updateOpacityDisplay() {
+            const opacity = document.getElementById('opacity').value;
+            document.getElementById('opacityValue').textContent = opacity + '%';
+        }
+
+        function updateActionCount() {
+            document.getElementById('actionCount').textContent = `Actions: ${actionCount}`;
+            document.getElementById('undoBtn').disabled = actionCount === 0;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Expose function for external initialization
+        window.initializeEnhancedStudio = initializeStudio;
+    </script>
+</body>
+</html>

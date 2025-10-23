@@ -846,13 +846,14 @@ async function paintAtClick(event, roomIndex) {
     const x = Math.round((event.clientX - rect.left) * (imageElement.naturalWidth / rect.width));
     const y = Math.round((event.clientY - rect.top) * (imageElement.naturalHeight / rect.height));
     
-    // Show painting effect
-    showPaintingEffect(event.clientX, event.clientY, selectedColor);
+    // Show SAM processing indicator
+    showSAMProcessing(event.clientX, event.clientY);
     
     try {
         // Initialize session if needed
         let sessionId = paintSessions[roomIndex];
         if (!sessionId) {
+            showPaintingNotification('🤖 Initializing SAM AI...', '#667eea');
             sessionId = await initializePaintSession(roomIndex);
             if (!sessionId) {
                 showPaintingNotification('Failed to initialize painting session', '#ff6b6b');
@@ -879,7 +880,7 @@ async function paintAtClick(event, roomIndex) {
         if (result.success) {
             // Update image with painted result
             imageElement.src = result.image;
-            showPaintingNotification('🎨 Painted successfully!', selectedColor);
+            showPaintingNotification('🎨 Segment painted successfully!', selectedColor);
         } else {
             showPaintingNotification('Failed to paint: ' + result.error, '#ff6b6b');
         }
@@ -889,29 +890,55 @@ async function paintAtClick(event, roomIndex) {
     }
 }
 
-function showPaintingEffect(x, y, color) {
+function showSAMProcessing(x, y) {
     const effect = document.createElement('div');
     effect.style.cssText = `
         position: fixed;
-        left: ${x - 25}px;
-        top: ${y - 25}px;
-        width: 50px;
-        height: 50px;
-        background: ${color};
+        left: ${x - 40}px;
+        top: ${y - 40}px;
+        width: 80px;
+        height: 80px;
+        background: rgba(102, 126, 234, 0.9);
         border-radius: 50%;
         pointer-events: none;
         z-index: 9999;
-        animation: paintSplash 0.8s ease-out forwards;
-        box-shadow: 0 0 20px ${color};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        animation: samProcessing 2s ease-out forwards;
+        box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+        backdrop-filter: blur(10px);
     `;
+    effect.innerHTML = '🤖';
     
     document.body.appendChild(effect);
     
+    // Add processing text
+    const text = document.createElement('div');
+    text.style.cssText = `
+        position: fixed;
+        left: ${x - 60}px;
+        top: ${y + 50}px;
+        background: rgba(102, 126, 234, 0.9);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        pointer-events: none;
+        z-index: 9999;
+        animation: fadeInUp 0.5s ease-out;
+        backdrop-filter: blur(10px);
+    `;
+    text.textContent = 'Processing with SAM AI...';
+    document.body.appendChild(text);
+    
     setTimeout(() => {
-        if (effect.parentElement) {
-            effect.remove();
-        }
-    }, 800);
+        if (effect.parentElement) effect.remove();
+        if (text.parentElement) text.remove();
+    }, 2000);
 }
 
 function showPaintingNotification(message, color) {
@@ -1173,6 +1200,21 @@ async function resetRoomImage(roomIndex) {
     100% {
         opacity: 0;
         transform: scale(0.8);
+    }
+}
+
+@keyframes samProcessing {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8) rotate(360deg);
     }
 }
 </style>

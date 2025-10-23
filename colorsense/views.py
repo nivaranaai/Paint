@@ -4,8 +4,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import ensure_csrf_cookie
 from .agent import run_agent, summrise_input, paint_suggestion
 from .interactive_painter import interactive_painter
-import uuid
-from .interactive_painter import interactive_painter
+from .enhanced_painter import enhanced_painter
 import uuid
 try:
     from .reconstruct import reconstruct_3d, pointcloud_to_textured_mesh
@@ -17,6 +16,7 @@ import os
 import time
 import pdb
 import json
+from django.views.decorators.csrf import csrf_exempt
 
 @ensure_csrf_cookie
 def index(request):
@@ -191,3 +191,119 @@ def get_paint_session(request, session_id):
             return JsonResponse({'success': False, 'error': 'Session not found'})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)})
+
+# Enhanced Paint Studio Views
+@csrf_exempt
+@require_POST
+def create_enhanced_session(request):
+    """Create enhanced paint session with carousel and recommendations"""
+    try:
+        data = json.loads(request.body)
+        images_data = data.get('images', [])
+        paint_recommendations = data.get('recommendations', [])
+        
+        session_id = enhanced_painter.create_carousel_session(images_data, paint_recommendations)
+        
+        if session_id:
+            result = enhanced_painter.get_current_image_data(session_id)
+            return JsonResponse({
+                'success': True,
+                'session_id': session_id,
+                **result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to create session'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def switch_carousel_image(request):
+    """Switch to next/previous image in carousel"""
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        direction = data.get('direction', 'next')
+        
+        result = enhanced_painter.switch_image(session_id, direction)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                **result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Failed to switch image'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def preview_enhanced_segment(request):
+    """Preview segment in enhanced studio"""
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        x = int(data.get('x'))
+        y = int(data.get('y'))
+        
+        result = enhanced_painter.get_segment_preview(session_id, x, y)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                **result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Preview failed'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def apply_enhanced_color(request):
+    """Apply recommended color to segment"""
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        x = int(data.get('x'))
+        y = int(data.get('y'))
+        color = data.get('color')
+        blend_mode = data.get('blend_mode', 'normal')
+        opacity = float(data.get('opacity', 0.7))
+        
+        result = enhanced_painter.apply_recommended_color(session_id, x, y, color, blend_mode, opacity)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                **result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Color application failed'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+@csrf_exempt
+@require_POST
+def reset_enhanced_image(request):
+    """Reset current image in enhanced studio"""
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        
+        result = enhanced_painter.reset_current_image(session_id)
+        
+        if result:
+            return JsonResponse({
+                'success': True,
+                **result
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Reset failed'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+def enhanced_studio_demo(request):
+    """Render enhanced paint studio demo page"""
+    return render(request, "colorsense/enhanced_paint_studio.html")
