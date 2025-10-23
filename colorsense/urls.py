@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from .colorizer_opencv import views as colorizer_views
 from .groq_api_impl import views as groq_views
+from .sam_studio import views as sam_studio_views
 
 urlpatterns = [
     path('', views.nivarana_index, name='colorsense_index'),
@@ -34,4 +35,11 @@ urlpatterns = [
     path('api/paint/point/', views.paint_at_point, name='paint_at_point'),
     path('api/paint/reset/', views.reset_paint_session, name='reset_paint_session'),
     path('api/paint/session/<str:session_id>/', views.get_paint_session, name='get_paint_session'),
+    
+    # SAM Studio API
+    path('api/sam-studio/create/', sam_studio_views.create_studio_session, name='sam_studio_create'),
+    path('api/sam-studio/apply-color/', sam_studio_views.apply_color, name='sam_studio_apply'),
+    
+    # SAM Studio
+    path('sam-studio/', sam_studio_views.sam_studio_demo, name='sam_studio_demo'),
 ]
