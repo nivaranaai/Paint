@@ -1,11 +1,385 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SAM Studio</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAM Interactive Paint Studio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            color: white;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-container {
+            flex: 1;
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .canvas-section {
+            flex: 2;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f8f9fa;
+            min-height: 500px;
+        }
+        
+        #canvas {
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: crosshair;
+        }
+        
+        .controls-panel {
+            flex: 1;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            max-width: 350px;
+        }
+        
+        .panel-section {
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+        }
+        
+        .upload-area:hover {
+            border-color: #4facfe;
+        }
+        
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .color-swatch {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+        
+        .color-swatch.active {
+            border-color: #333;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        select, input[type="range"] {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>🎨 SAM Interactive Paint Studio</h1>
-    <p>SAM Studio is being restored...</p>
-    <p>Please run: <code>python download_sam_model.py</code> to get the SAM model.</p>
+    <div class="header">
+        <h1>🎨 SAM Interactive Paint Studio</h1>
+        <p>Click anywhere on your image to intelligently segment and color with AI precision</p>
+    </div>
+    
+    <div class="main-container">
+        <div class="canvas-section">
+            <div class="canvas-container">
+                <canvas id="canvas"></canvas>
+                <div class="loading" id="loading">
+                    <p>Processing...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-panel">
+            <div class="panel-section">
+                <h3>📁 Upload Image</h3>
+                <div class="upload-area" id="uploadArea">
+                    <p>🖼️ Drop image here or click to browse</p>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <h3>🎨 Color Palette</h3>
+                <div class="color-palette" id="colorPalette"></div>
+                <input type="color" id="colorPicker" value="#ff0000">
+            </div>
+            
+            <div class="panel-section">
+                <h3>⚙️ Paint Settings</h3>
+                <div class="control-group">
+                    <label for="blendMode">Blend Mode:</label>
+                    <select id="blendMode">
+                        <option value="normal">Normal</option>
+                        <option value="overlay">Overlay</option>
+                        <option value="multiply">Multiply</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="opacity">Opacity: <span id="opacityValue">70%</span></label>
+                    <input type="range" id="opacity" min="10" max="100" value="70">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSession = null;
+        let canvas = document.getElementById('canvas');
+        let ctx = canvas.getContext('2d');
+        let currentColor = '#ff0000';
+        let originalImageSize = { width: 0, height: 0 };
+        let canvasScale = 1;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            updateOpacityDisplay();
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+            
+            uploadArea.addEventListener('click', () => imageInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            imageInput.addEventListener('change', handleImageUpload);
+            
+            canvas.addEventListener('click', handleCanvasClick);
+            
+            document.getElementById('colorPicker').addEventListener('change', function(e) {
+                currentColor = e.target.value;
+            });
+            
+            document.getElementById('opacity').addEventListener('input', updateOpacityDisplay);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                uploadImage(files[0]);
+            }
+        }
+
+        function handleImageUpload(e) {
+            const file = e.target.files[0];
+            if (file) {
+                uploadImage(file);
+            }
+        }
+
+        async function uploadImage(file) {
+            showLoading(true);
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch('/api/sam-studio/create/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    currentSession = result.session_id;
+                    loadImageToCanvas(result.image);
+                    loadColorPalette(result.palette);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Upload failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadImageToCanvas(base64Image) {
+            originalImageSize = { width: 0, height: 0 };
+            canvasScale = 1;
+            
+            const img = new Image();
+            img.onload = function() {
+                originalImageSize.width = img.width;
+                originalImageSize.height = img.height;
+                
+                const container = canvas.parentElement;
+                const maxWidth = container.clientWidth - 40;
+                const maxHeight = container.clientHeight - 40;
+                
+                let displayWidth = img.width;
+                let displayHeight = img.height;
+                
+                if (displayWidth > maxWidth || displayHeight > maxHeight) {
+                    const scale = Math.min(maxWidth / displayWidth, maxHeight / displayHeight);
+                    displayWidth = Math.floor(displayWidth * scale);
+                    displayHeight = Math.floor(displayHeight * scale);
+                    canvasScale = scale;
+                } else {
+                    canvasScale = 1;
+                }
+                
+                canvas.width = displayWidth;
+                canvas.height = displayHeight;
+                
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+            };
+            img.src = 'data:image/jpeg;base64,' + base64Image;
+        }
+
+        function loadColorPalette(palette) {
+            const paletteContainer = document.getElementById('colorPalette');
+            paletteContainer.innerHTML = '';
+            
+            palette.forEach((color, index) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch';
+                swatch.style.backgroundColor = `rgb(${color[2]}, ${color[1]}, ${color[0]})`;
+                swatch.onclick = () => {
+                    currentColor = rgbToHex(color[2], color[1], color[0]);
+                    document.getElementById('colorPicker').value = currentColor;
+                };
+                paletteContainer.appendChild(swatch);
+            });
+        }
+
+        async function handleCanvasClick(e) {
+            if (!currentSession) return;
+            
+            showLoading(true);
+            
+            const rect = canvas.getBoundingClientRect();
+            const canvasX = e.clientX - rect.left;
+            const canvasY = e.clientY - rect.top;
+            
+            const x = Math.floor(canvasX / canvasScale);
+            const y = Math.floor(canvasY / canvasScale);
+            
+            try {
+                const response = await fetch('/api/sam-studio/apply-color/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSession,
+                        x: x,
+                        y: y,
+                        color: currentColor,
+                        blend_mode: document.getElementById('blendMode').value,
+                        opacity: document.getElementById('opacity').value / 100
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadImageToCanvas(result.image);
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Color application failed: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function updateOpacityDisplay() {
+            const opacity = document.getElementById('opacity').value;
+            document.getElementById('opacityValue').textContent = opacity + '%';
+        }
+        
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+    </script>
 </body>
 </html>
